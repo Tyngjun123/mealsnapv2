@@ -1,10 +1,16 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { BottomNav } from '@/components/BottomNav'
 import { MealCard } from '@/components/MealCard'
-import { getMealsByDays, deleteMeal, type Meal } from '@/lib/store'
 
-type MealEntry = Meal
+interface MealEntry {
+  id: string
+  mealType: string
+  eatenAt: string
+  totalKcal: number
+  imageUrl?: string | null
+  foodItems: Array<{ name: string; kcal: number }>
+}
 
 function formatDate(dateStr: string) {
   const d = new Date(dateStr)
@@ -30,15 +36,15 @@ function getLast7Days() {
   })
 }
 
-export default function HistoryView() {
-  const [meals, setMeals]         = useState<MealEntry[]>([])
+interface Props { meals: MealEntry[] }
+
+export function HistoryView({ meals: initialMeals }: Props) {
+  const [meals, setMeals]               = useState(initialMeals)
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
 
-  useEffect(() => { setMeals(getMealsByDays(30)) }, [])
-
-  function handleDelete(id: string) {
-    deleteMeal(id)
-    setMeals(getMealsByDays(30))
+  async function handleDelete(id: string) {
+    await fetch(`/api/meals?id=${id}`, { method: 'DELETE' })
+    setMeals(prev => prev.filter(m => m.id !== id))
   }
 
   const days = getLast7Days()

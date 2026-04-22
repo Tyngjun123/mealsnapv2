@@ -10,11 +10,19 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async signIn({ user, account }) {
-      // Phase 3: uncomment to persist user to Vercel Postgres
-      // if (account?.provider === 'google' && user.email) {
-      //   const { upsertUser } = await import('./db')
-      //   await upsertUser({ googleId: account.providerAccountId, email: user.email, name: user.name ?? '', avatarUrl: user.image ?? '' })
-      // }
+      if (account?.provider === 'google' && user.email) {
+        try {
+          const { upsertUser } = await import('./db')
+          await upsertUser({
+            googleId: account.providerAccountId,
+            email: user.email,
+            name: user.name ?? '',
+            avatarUrl: user.image ?? '',
+          })
+        } catch (e) {
+          console.error('DB upsert failed (migration not run yet?):', e)
+        }
+      }
       return true
     },
     async session({ session, token }) {

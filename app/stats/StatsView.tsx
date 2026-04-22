@@ -1,27 +1,10 @@
 'use client'
-import { useEffect, useState } from 'react'
 import { BottomNav } from '@/components/BottomNav'
-import { getProfile, getDailySummaries } from '@/lib/store'
 
 interface DayTotal { date: string; fullDate: string; kcal: number; protein: number; carbs: number; fat: number }
+interface Props { goal: number; totals: DayTotal[] }
 
-export default function StatsView() {
-  const [goal, setGoal]     = useState(2000)
-  const [totals, setTotals] = useState<DayTotal[]>([])
-
-  useEffect(() => {
-    const p = getProfile()
-    if (p) setGoal(p.dailyGoalKcal)
-    const summaries = getDailySummaries(30)
-    setTotals(summaries.map(s => ({
-      date: s.date,
-      fullDate: s.fullDate,
-      kcal: Math.round(s.totalKcal),
-      protein: Math.round(s.proteinG),
-      carbs: Math.round(s.carbsG),
-      fat: Math.round(s.fatG),
-    })))
-  }, [])
+export function StatsView({ goal, totals }: Props) {
   const last7 = totals.slice(-7)
   const maxKcal = Math.max(...last7.map(d => d.kcal), goal, 1)
 

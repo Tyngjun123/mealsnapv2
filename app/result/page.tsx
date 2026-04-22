@@ -29,30 +29,32 @@ export default function ResultPage() {
   const totalCarbs = foods.reduce((s, f) => s + f.carbs_g, 0)
   const totalFat = foods.reduce((s, f) => s + f.fat_g, 0)
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!data) return
     setSaving(true)
-    // Phase 1: save to localStorage directly
-    // Phase 2: POST to /api/meals then localStorage
-    const { addMeal } = require('@/lib/store')
-    addMeal({
-      mealType: data.mealType as 'breakfast' | 'lunch' | 'dinner' | 'snack',
-      eatenAt: new Date().toISOString(),
-      imageUrl: data.imageUrl,
-      totalKcal,
-      foodItems: foods.map(f => ({
-        id: crypto.randomUUID(),
-        name: f.name,
-        amountG: f.estimated_amount_g,
-        kcal: f.calories_kcal,
-        proteinG: f.protein_g,
-        carbsG: f.carbs_g,
-        fatG: f.fat_g,
-      })),
-    })
-    sessionStorage.removeItem('analyzeResult')
-    setSaving(false)
-    router.push('/')
+    try {
+      await fetch('/api/meals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mealType: data.mealType,
+          imageUrl: data.imageUrl,
+          totalKcal,
+          foodItems: foods.map(f => ({
+            name: f.name,
+            amountG: f.estimated_amount_g,
+            kcal: f.calories_kcal,
+            proteinG: f.protein_g,
+            carbsG: f.carbs_g,
+            fatG: f.fat_g,
+          })),
+        }),
+      })
+      sessionStorage.removeItem('analyzeResult')
+      router.push('/')
+    } finally {
+      setSaving(false)
+    }
   }
 
   const updateFood = (idx: number, field: keyof DetectedFood, value: string | number) => {

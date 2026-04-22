@@ -1,14 +1,25 @@
 'use client'
 import Link from 'next/link'
 import Image from 'next/image'
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { useSession } from 'next-auth/react'
+import { useState } from 'react'
 import { BottomNav } from '@/components/BottomNav'
 import { CalorieRing } from '@/components/CalorieRing'
 import { MacroBar } from '@/components/MacroBar'
 import { MealCard } from '@/components/MealCard'
-import { getProfile, saveProfile, getTodayMeals, getTodayMacros, deleteMeal, type Meal } from '@/lib/store'
+
+interface Props {
+  user: { name: string; avatarUrl: string; dailyGoal: number }
+  eaten: number
+  macros: { protein: number; carbs: number; fat: number }
+  meals: Array<{
+    id: string
+    mealType: string
+    time: string
+    totalKcal: number
+    imageUrl?: string | null
+    foodItems: Array<{ name: string; kcal: number }>
+  }>
+}
 
 function greeting() {
   const h = new Date().getHours()
@@ -17,38 +28,14 @@ function greeting() {
   return 'Good evening'
 }
 
-export default function HomeDashboard() {
-  const router = useRouter()
-  const { data: session } = useSession()
-  const [profile, setProfile] = useState<ReturnType<typeof getProfile>>(null)
-  const [meals, setMeals]     = useState<Meal[]>([])
-  const [macros, setMacros]   = useState({ protein: 0, carbs: 0, fat: 0 })
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-    let p = getProfile()
-    // Auto-create profile from Google session if none exists
-    if (!p && session?.user) {
-      p = { name: session.user.name ?? 'User', dailyGoalKcal: 2000, heightCm: null, weightKg: null, age: null, isPro: false }
-      saveProfile(p)
-    }
-    if (!p) { router.replace('/login'); return }
-    setProfile(p)
-    setMeals(getTodayMeals())
-    setMacros(getTodayMacros())
-  }, [router, session])
-
-  function handleDelete(id: string) {
-    deleteMeal(id)
-    setMeals(getTodayMeals())
-    setMacros(getTodayMacros())
-  }
-
-  if (!mounted || !profile) return null
-
-  const eaten = meals.reduce((s, m) => s + m.totalKcal, 0)
+export function HomeDashboard({ user, eaten, macros, meals: initialMeals }: Props) {
+  const [meals, setMeals] = useState(initialMeals)
   const today = new Date().toLocaleDateString('en', { weekday: 'long', month: 'long', day: 'numeric' })
+
+  async function handleDelete(id: string) {
+    await fetch(`/api/meals?id=${id}`, { method: 'DELETE' })
+    setMeals(prev => prev.filter(m => m.id !== id))
+  }
 
   return (
     <div style={{ paddingBottom: 100 }}>
@@ -57,11 +44,11 @@ export default function HomeDashboard() {
         <div>
           <div style={{ fontSize: 13, color: '#6B7168', fontWeight: 500 }}>{today}</div>
           <h1 style={{ fontSize: 22, fontWeight: 800, color: '#1A1D1A', margin: '4px 0 0', letterSpacing: -0.5 }}>
-            {greeting()}, {profile.name.split(' ')[0]} 👋
+            {greeting()}, {user.name.split(' ')[0]} 👋
           </h1>
         </div>
-        {session?.user?.image && (
-          <Image src={session.user.image} alt="avatar" width={40} height={40}
+        {user.avatarUrl && (
+          <Image src={user.avatarUrl} alt="avatar" width={40} height={40}
             style={{ borderRadius: '50%', border: '2px solid #E8F5E9' }} />
         )}
       </div>
@@ -69,9 +56,9 @@ export default function HomeDashboard() {
       {/* Calorie Ring Card */}
       <div className="card" style={{ margin: '0 16px 16px', padding: '24px 20px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
-          <CalorieRing eaten={eaten} goal={profile.dailyGoalKcal} size={180} />
+          <CalorieRing eaten={eaten} goal={user.dailyGoal} size={180} />
         </div>
-        <MacroBar protein={Math.round(macros.protein)} carbs={Math.round(macros.carbs)} fat={Math.round(macros.fat)} />
+        <MacroBar protein={macros.protein} carbs={macros.carbs} fat={macros.fat} />
       </div>
 
       {/* Today's Meals */}
@@ -92,15 +79,7 @@ export default function HomeDashboard() {
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {meals.map(m => (
-              <MealCard
-                key={m.id} id={m.id} mealType={m.mealType}
-                time={new Date(m.eatenAt).toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' })}
-                totalKcal={m.totalKcal} imageUrl={m.imageUrl}
-                foodItems={m.foodItems}
-                onDelete={handleDelete}
-              />
-            ))}
+            {meals.map(m => <MealCard key={m.id} {...m} onDelete={handleDelete} />)}
           </div>
         )}
       </div>
@@ -116,8 +95,8 @@ export default function HomeDashboard() {
       }}>
         <svg width="28" height="28" fill="none" viewBox="0 0 24 24">
           <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"
-            stroke="#fff" strokeWidth="2" fill="none" strokeLinejoin="round"/>
-          <circle cx="12" cy="13" r="4" stroke="#fff" strokeWidth="2"/>
+            stroke="#fff" strokeWidth="2" fill="none" strokeLinejoin="round" />
+          <circle cx="12" cy="13" r="4" stroke="#fff" strokeWidth="2" />
         </svg>
       </Link>
 

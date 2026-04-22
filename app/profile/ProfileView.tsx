@@ -1,24 +1,21 @@
 'use client'
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+import { signOut } from 'next-auth/react'
 import { BottomNav } from '@/components/BottomNav'
-import { getProfile, saveProfile, getMealsByDays } from '@/lib/store'
 
-export default function ProfileView() {
-  const router  = useRouter()
-  const profile = getProfile()
-  const [name, setName]     = useState(profile?.name ?? '')
-  const [goal, setGoal]     = useState(profile?.dailyGoalKcal ?? 2000)
-  const [height, setHeight] = useState(profile?.heightCm?.toString() ?? '')
-  const [weight, setWeight] = useState(profile?.weightKg?.toString() ?? '')
-  const [age, setAge]       = useState(profile?.age?.toString() ?? '')
+interface UserProfile {
+  name: string; email: string; avatarUrl: string
+  dailyGoalKcal: number; heightCm: number | null
+  weightKg: number | null; age: number | null; isPro: boolean
+}
+interface Props { user: UserProfile }
+
+export function ProfileView({ user }: Props) {
+  const [goal, setGoal]     = useState(user.dailyGoalKcal)
+  const [height, setHeight] = useState(user.heightCm?.toString() ?? '')
+  const [weight, setWeight] = useState(user.weightKg?.toString() ?? '')
+  const [age, setAge]       = useState(user.age?.toString() ?? '')
   const [saved, setSaved]   = useState(false)
-  const [mealCount, setMealCount] = useState(0)
-
-  useEffect(() => {
-    if (!profile) { router.replace('/login'); return }
-    setMealCount(getMealsByDays(30).length)
-  }, [profile, router])
 
   const GOAL_PRESETS = [
     { label: 'Lose', kcal: 1500, desc: '−500 deficit' },
@@ -26,27 +23,28 @@ export default function ProfileView() {
     { label: 'Gain', kcal: 2500, desc: '+500 surplus' },
   ]
 
-  function handleSave() {
-    if (!profile) return
-    saveProfile({ ...profile, name, dailyGoalKcal: goal, heightCm: height ? parseInt(height) : null, weightKg: weight ? parseFloat(weight) : null, age: age ? parseInt(age) : null })
+  async function handleSave() {
+    await fetch('/api/user', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ daily_goal_kcal: goal, height_cm: height ? parseInt(height) : null, weight_kg: weight ? parseFloat(weight) : null, age: age ? parseInt(age) : null }),
+    })
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
   }
 
-  function handleExport() {
-    const meals = getMealsByDays(365)
-    const json  = JSON.stringify(meals, null, 2)
-    const blob  = new Blob([json], { type: 'application/json' })
-    const url   = URL.createObjectURL(blob)
-    const a     = document.createElement('a')
+  async function handleExport() {
+    const res  = await fetch('/api/meals?export=1')
+    const blob = await res.blob()
+    const url  = URL.createObjectURL(blob)
+    const a    = document.createElement('a')
     a.href = url
     a.download = `mealsnap-export-${new Date().toISOString().split('T')[0]}.json`
     a.click()
   }
 
   function handleSignOut() {
-    localStorage.removeItem('ms_profile')
-    router.push('/login')
+    signOut({ callbackUrl: '/login' })
   }
 
   return (
@@ -58,23 +56,27 @@ export default function ProfileView() {
 
       {/* User card */}
       <div className="card" style={{ margin: '16px 16px', padding: '20px', display: 'flex', alignItems: 'center', gap: 14 }}>
-        <div style={{
-          width: 60, height: 60, borderRadius: '50%',
-          background: 'linear-gradient(135deg, #4CAF50, #2E7D32)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 24, color: '#fff', fontWeight: 800, flexShrink: 0,
-        }}>{name?.[0]?.toUpperCase() ?? '?'}</div>
+        {user.avatarUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={user.avatarUrl} alt="avatar" width={60} height={60}
+            style={{ borderRadius: '50%', border: '3px solid #E8F5E9', flexShrink: 0 }} />
+        ) : (
+          <div style={{
+            width: 60, height: 60, borderRadius: '50%',
+            background: 'linear-gradient(135deg, #4CAF50, #2E7D32)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 24, color: '#fff', fontWeight: 800, flexShrink: 0,
+          }}>{user.name?.[0]?.toUpperCase() ?? '?'}</div>
+        )}
         <div style={{ flex: 1 }}>
-          <input value={name} onChange={e => setName(e.target.value)}
-            style={{ fontSize: 17, fontWeight: 800, color: '#1A1D1A', border: 'none', background: 'none', fontFamily: 'inherit', outline: 'none', width: '100%' }}/>
-          <div style={{ fontSize: 12, color: '#6B7168', marginTop: 2 }}>
-            {mealCount} meals logged (30 days)
-          </div>
+          <div style={{ fontSize: 17, fontWeight: 800, color: '#1A1D1A' }}>{user.name}</div>
+          <div style={{ fontSize: 13, color: '#6B7168', marginTop: 2 }}>{user.email}</div>
         </div>
         <span style={{
           padding: '4px 10px', borderRadius: 999, fontSize: 11, fontWeight: 700,
-          background: '#F5F5F0', color: '#6B7168', flexShrink: 0,
-        }}>Free</span>
+          background: user.isPro ? 'linear-gradient(135deg, #FFD700, #FF8F00)' : '#F5F5F0',
+          color: user.isPro ? '#fff' : '#6B7168', flexShrink: 0,
+        }}>{user.isPro ? '⭐ Pro' : 'Free'}</span>
       </div>
 
       {/* Daily Goal */}
