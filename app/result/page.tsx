@@ -16,6 +16,8 @@ export default function ResultPage() {
   const [mealType, setMealType] = useState('dinner')
   const [saving, setSaving] = useState(false)
   const [editingIdx, setEditingIdx] = useState<number | null>(null)
+  const [correction, setCorrection] = useState('')
+  const [correcting, setCorrecting] = useState(false)
 
   useEffect(() => {
     const raw = sessionStorage.getItem('analyzeResult')
@@ -59,6 +61,25 @@ export default function ResultPage() {
     }
   }
 
+  const handleCorrect = async () => {
+    if (!correction.trim() || correcting) return
+    setCorrecting(true)
+    try {
+      const res = await fetch('/api/correct', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ foods, correction: correction.trim() }),
+      })
+      if (res.status === 429) { alert('AI busy — wait 1 minute and try again.'); return }
+      if (!res.ok) { alert('Could not apply correction. Try again.'); return }
+      const updated = await res.json()
+      setFoods(updated.foods)
+      setCorrection('')
+    } finally {
+      setCorrecting(false)
+    }
+  }
+
   const updateFood = (idx: number, field: keyof DetectedFood, value: string | number) => {
     setFoods(prev => prev.map((f, i) => i === idx ? { ...f, [field]: value } : f))
   }
@@ -89,6 +110,44 @@ export default function ResultPage() {
           <img src={data.imageUrl} alt="meal" style={{ width: '100%', height: '100%', objectFit: 'cover' }}/>
         </div>
       )}
+
+      {/* AI Correction */}
+      <div className="card" style={{ margin: '0 16px 12px', padding: '16px' }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: '#1A1D1A', marginBottom: 4 }}>
+          ✏️ Correct the AI
+        </div>
+        <div style={{ fontSize: 12, color: '#6B7168', marginBottom: 10 }}>
+          e.g. "no pearls and beans", "add extra cheese", "it's a mango latte"
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <input
+            value={correction}
+            onChange={e => setCorrection(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleCorrect()}
+            placeholder="Describe what to change..."
+            style={{
+              flex: 1, border: '1.5px solid #E0E0E0', borderRadius: 12,
+              padding: '10px 12px', fontSize: 13, fontFamily: 'inherit',
+              outline: 'none', background: '#FAFAF7', color: '#1A1D1A',
+            }}
+            onFocus={e => (e.target.style.borderColor = '#4CAF50')}
+            onBlur={e => (e.target.style.borderColor = '#E0E0E0')}
+          />
+          <button
+            onClick={handleCorrect}
+            disabled={!correction.trim() || correcting}
+            style={{
+              padding: '10px 16px', borderRadius: 12, border: 'none',
+              background: !correction.trim() || correcting ? '#E0E0E0' : '#4CAF50',
+              color: !correction.trim() || correcting ? '#9E9E9E' : '#fff',
+              fontWeight: 700, fontSize: 13, fontFamily: 'inherit',
+              cursor: !correction.trim() || correcting ? 'not-allowed' : 'pointer',
+              whiteSpace: 'nowrap', transition: 'all 0.15s',
+            }}>
+            {correcting ? '...' : '↻ Update'}
+          </button>
+        </div>
+      </div>
 
       {/* Meal type selector */}
       <div style={{ padding: '0 16px 12px', display: 'flex', gap: 8 }}>
