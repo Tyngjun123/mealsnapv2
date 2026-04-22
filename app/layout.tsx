@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   title: 'MealSnap — AI Calorie Tracker',
   description: 'Point. Snap. Log. AI-powered meal calorie tracking.',
   manifest: '/manifest.json',
+  icons: { icon: '/icon.svg', apple: '/icon.svg' },
 }
 
 export const viewport: Viewport = {
