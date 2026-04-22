@@ -19,17 +19,14 @@ export default function CameraPage() {
   const handleCapture = async () => {
     if (!preview || !fileRef.current?.files?.[0]) return
     setLoading(true)
-
     const file = fileRef.current.files[0]
     const formData = new FormData()
     formData.append('image', file)
     formData.append('mealType', mealType.toLowerCase())
-
     try {
       const res = await fetch('/api/analyze', { method: 'POST', body: formData })
       if (!res.ok) throw new Error('Analysis failed')
       const data = await res.json()
-      // Store in sessionStorage for result page
       sessionStorage.setItem('analyzeResult', JSON.stringify({ ...data, mealType: mealType.toLowerCase() }))
       router.push('/result')
     } catch {
@@ -41,112 +38,137 @@ export default function CameraPage() {
 
   return (
     <div style={{
-      minHeight: '100vh', background: '#111',
-      display: 'flex', flexDirection: 'column',
-      position: 'relative', overflow: 'hidden',
+      height: '100dvh',
+      background: '#000',
+      display: 'flex',
+      flexDirection: 'column',
+      position: 'relative',
+      overflow: 'hidden',
     }}>
-      {/* Close */}
-      <button onClick={() => router.push('/')} style={{
-        position: 'absolute', top: 'max(52px, calc(env(safe-area-inset-top) + 12px))', left: 16, zIndex: 10,
-        width: 40, height: 40, borderRadius: '50%',
-        background: 'rgba(0,0,0,0.5)', border: 'none',
-        color: '#fff', fontSize: 20, cursor: 'pointer',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}>×</button>
+      {/* Full-screen image preview */}
+      {preview && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={preview} alt="preview" style={{
+          position: 'absolute', inset: 0,
+          width: '100%', height: '100%',
+          objectFit: 'cover', zIndex: 0,
+        }}/>
+      )}
 
-      {/* Meal type selector */}
+      {/* Top overlay: close + meal type */}
       <div style={{
-        position: 'absolute', top: 'max(48px, calc(env(safe-area-inset-top) + 8px))', left: '50%', transform: 'translateX(-50%)',
-        zIndex: 10, display: 'flex', gap: 6,
-        background: 'rgba(0,0,0,0.5)', borderRadius: 999,
-        padding: '4px 6px', backdropFilter: 'blur(8px)',
+        position: 'relative', zIndex: 10,
+        paddingTop: 'max(52px, calc(env(safe-area-inset-top) + 12px))',
+        paddingLeft: 16, paddingRight: 16, paddingBottom: 12,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        background: 'linear-gradient(to bottom, rgba(0,0,0,0.55), transparent)',
       }}>
-        {MEAL_TYPES.map(t => (
-          <button key={t} onClick={() => setMealType(t)} style={{
-            padding: '6px 12px', borderRadius: 999, border: 'none', cursor: 'pointer',
-            background: mealType === t ? '#4CAF50' : 'transparent',
-            color: mealType === t ? '#fff' : 'rgba(255,255,255,0.6)',
-            fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
-            transition: 'all 0.15s',
-          }}>{t}</button>
-        ))}
+        <button onClick={() => router.push('/')} style={{
+          width: 36, height: 36, borderRadius: '50%',
+          background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.2)',
+          color: '#fff', fontSize: 18, cursor: 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          flexShrink: 0,
+        }}>×</button>
+
+        <div style={{
+          display: 'flex', gap: 4,
+          background: 'rgba(0,0,0,0.45)', borderRadius: 999,
+          padding: '4px 5px', backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
+        }}>
+          {MEAL_TYPES.map(t => (
+            <button key={t} onClick={() => setMealType(t)} style={{
+              padding: '6px 11px', borderRadius: 999, border: 'none', cursor: 'pointer',
+              background: mealType === t ? '#4CAF50' : 'transparent',
+              color: mealType === t ? '#fff' : 'rgba(255,255,255,0.65)',
+              fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
+              transition: 'all 0.15s',
+            }}>{t}</button>
+          ))}
+        </div>
+
+        <div style={{ width: 36 }}/>
       </div>
 
-      {/* Viewfinder */}
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
-        {preview ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={preview} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }}/>
-        ) : (
-          <div style={{ textAlign: 'center', color: 'rgba(255,255,255,0.4)' }}>
-            {/* AI bracket corners */}
-            {[['0,0', 'bottom right'], ['auto,0', 'bottom left'], ['0,auto', 'top right'], ['auto,auto', 'top left']].map(([pos, _], i) => {
-              const [top, right, bottom, left] = [
-                i === 0 || i === 2 ? 60 : 'auto',
-                i === 2 || i === 3 ? 40 : 'auto',
-                i === 1 || i === 3 ? 60 : 'auto',
-                i === 0 || i === 1 ? 40 : 'auto',
-              ]
-              const bStyle = {
-                position: 'absolute' as const,
-                top, right, bottom, left,
-                width: 32, height: 32,
-                borderColor: '#4CAF50',
-                borderStyle: 'solid',
-                borderWidth: `${i < 2 ? '2px 0 0 2px' : i === 2 ? '2px 2px 0 0' : '0 2px 2px 0'}`,
-              }
-              return <div key={i} style={bStyle}/>
-            })}
-            <div style={{ fontSize: 48, marginBottom: 12 }}>📷</div>
-            <div style={{ fontSize: 14, fontWeight: 600 }}>Tap below to take a photo</div>
-            <div style={{ fontSize: 12, marginTop: 4, opacity: 0.6 }}>or choose from your gallery</div>
+      {/* Viewfinder (empty state) */}
+      {!preview && (
+        <div style={{
+          flex: 1, display: 'flex', alignItems: 'center',
+          justifyContent: 'center', position: 'relative',
+        }}>
+          {/* Corner brackets */}
+          {([
+            { top: 80, left: 40 },
+            { top: 80, right: 40 },
+            { bottom: 80, left: 40 },
+            { bottom: 80, right: 40 },
+          ] as React.CSSProperties[]).map((pos, i) => (
+            <div key={i} style={{
+              position: 'absolute', ...pos,
+              width: 28, height: 28,
+              borderColor: '#4CAF50', borderStyle: 'solid',
+              borderWidth: i === 0 ? '2px 0 0 2px' : i === 1 ? '2px 2px 0 0' : i === 2 ? '0 0 2px 2px' : '0 2px 2px 0',
+            }}/>
+          ))}
+          <div style={{ textAlign: 'center', color: 'rgba(255,255,255,0.5)' }}>
+            <div style={{ fontSize: 44, marginBottom: 10 }}>📷</div>
+            <div style={{ fontSize: 14, fontWeight: 600 }}>Tap to choose a photo</div>
+            <div style={{ fontSize: 12, marginTop: 4, opacity: 0.6 }}>or use your gallery</div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
+
+      {/* Spacer when preview is shown */}
+      {preview && <div style={{ flex: 1 }}/>}
 
       {/* Bottom controls */}
       <div style={{
-        padding: '24px 32px',
-        paddingBottom: 'max(48px, calc(env(safe-area-inset-bottom) + 24px))',
+        position: 'relative', zIndex: 10,
+        paddingTop: 24, paddingLeft: 40, paddingRight: 40,
+        paddingBottom: 'max(40px, calc(env(safe-area-inset-bottom) + 24px))',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)',
+        background: 'linear-gradient(to top, rgba(0,0,0,0.7) 60%, transparent)',
       }}>
         {/* Gallery */}
         <button onClick={() => fileRef.current?.click()} style={{
-          width: 48, height: 48, borderRadius: 14,
-          background: 'rgba(255,255,255,0.15)', border: 'none',
+          width: 50, height: 50, borderRadius: 14,
+          background: 'rgba(255,255,255,0.18)', border: '1px solid rgba(255,255,255,0.15)',
           color: '#fff', cursor: 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: 22,
         }}>🖼️</button>
 
-        {/* Capture / Confirm */}
+        {/* Main action button */}
         <button
           onClick={preview ? handleCapture : () => fileRef.current?.click()}
           disabled={loading}
           style={{
-            width: 72, height: 72, borderRadius: '50%',
-            background: loading ? '#6B7168' : '#4CAF50',
-            border: '4px solid rgba(255,255,255,0.3)',
+            width: 76, height: 76, borderRadius: '50%',
+            background: loading ? 'rgba(107,113,104,0.9)' : 'linear-gradient(135deg, #4CAF50, #2E7D32)',
+            border: '3px solid rgba(255,255,255,0.35)',
             cursor: loading ? 'not-allowed' : 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: loading ? 14 : 28, color: '#fff', fontWeight: 700,
-            fontFamily: 'inherit', transition: 'background 0.2s',
+            fontSize: loading ? 13 : 28, color: '#fff', fontWeight: 700,
+            fontFamily: 'inherit',
+            boxShadow: loading ? 'none' : '0 6px 24px rgba(76,175,80,0.5)',
+            transition: 'all 0.2s',
           }}>
-          {loading ? '...' : preview ? '✓' : '📷'}
+          {loading ? 'AI...' : preview ? '✓' : '📷'}
         </button>
 
-        {/* Re-shoot */}
+        {/* Retake */}
         {preview ? (
           <button onClick={() => { setPreview(null); if (fileRef.current) fileRef.current.value = '' }} style={{
-            width: 48, height: 48, borderRadius: 14,
-            background: 'rgba(255,255,255,0.15)', border: 'none',
-            color: '#fff', cursor: 'pointer', fontSize: 22,
+            width: 50, height: 50, borderRadius: 14,
+            background: 'rgba(255,255,255,0.18)', border: '1px solid rgba(255,255,255,0.15)',
+            color: '#fff', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 22,
           }}>🔄</button>
-        ) : <div style={{ width: 48 }}/>}
+        ) : <div style={{ width: 50 }}/>}
       </div>
 
-      {/* Hidden file input */}
       <input
         ref={fileRef} type="file" accept="image/*" capture="environment"
         style={{ display: 'none' }}
