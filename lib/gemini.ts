@@ -23,9 +23,9 @@ const PROMPT = `Analyze this meal photo. For each food item visible, return a JS
 Return ONLY the JSON array, no explanation, no markdown.`
 
 const MODELS = [
-  'gemini-2.0-flash',
-  'gemini-2.0-flash-001',
+  'gemini-flash-latest',
   'gemini-2.0-flash-lite',
+  'gemini-2.0-flash',
 ]
 
 export async function analyzeMealImage(base64Image: string, mediaType: string): Promise<DetectedFood[]> {
