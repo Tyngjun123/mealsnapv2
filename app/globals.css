@@ -1,0 +1,57 @@
+@import "tailwindcss";
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background-color: #FAFAF7;
+    color: #1A1D1A;
+    font-family: 'Inter', -apple-system, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::-webkit-scrollbar { display: none; }
+  scrollbar-width: none;
+}
+
+@layer utilities {
+  .brand-bg    { background-color: #FAFAF7; }
+  .brand-card  { background-color: #FFFFFF; }
+  .brand-text  { color: #1A1D1A; }
+  .brand-muted { color: #6B7168; }
+
+  .green-primary { color: #4CAF50; }
+  .green-dark    { color: #2E7D32; }
+  .bg-green-primary { background-color: #4CAF50; }
+  .bg-green-dark    { background-color: #2E7D32; }
+  .bg-green-soft    { background-color: #E8F5E9; }
+
+  .card {
+    background: #fff;
+    border-radius: 20px;
+    border: 1px solid rgba(0,0,0,0.06);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  }
+
+  .btn-primary {
+    background: #4CAF50;
+    color: #fff;
+    border-radius: 16px;
+    font-weight: 700;
+    padding: 14px 24px;
+    border: none;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    font-family: inherit;
+  }
+  .btn-primary:active { opacity: 0.85; transform: scale(0.98); }
+
+  .meal-icon-breakfast { background: #FFF8E1; }
+  .meal-icon-lunch     { background: #E8F5E9; }
+  .meal-icon-dinner    { background: #E3F2FD; }
+  .meal-icon-snack     { background: #FBE9E7; }
+}
