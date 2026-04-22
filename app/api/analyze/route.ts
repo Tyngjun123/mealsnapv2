@@ -52,6 +52,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ foods, imageUrl })
   } catch (err) {
     console.error('AI analysis error:', err)
+    const msg = err instanceof Error ? err.message : ''
+    if (msg.includes('429')) {
+      return NextResponse.json({ error: 'rate_limited' }, { status: 429 })
+    }
     return NextResponse.json({ foods: MOCK_FOODS, imageUrl, mock: true })
   }
 }

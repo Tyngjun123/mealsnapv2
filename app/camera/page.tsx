@@ -22,6 +22,10 @@ export default function CameraPage() {
     formData.append('mealType', 'dinner')
     try {
       const res = await fetch('/api/analyze', { method: 'POST', body: formData })
+      if (res.status === 429) {
+        alert('AI is busy — free tier limit reached. Please wait 1 minute and try again.')
+        return
+      }
       if (!res.ok) throw new Error('Analysis failed')
       const data = await res.json()
       sessionStorage.setItem('analyzeResult', JSON.stringify({ ...data, mealType: 'dinner' }))
