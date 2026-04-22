@@ -48,9 +48,9 @@ export function ProfileView({ user }: Props) {
   }
 
   return (
-    <div style={{ paddingBottom: 100 }}>
+    <div className="page-bottom">
       {/* Header */}
-      <div style={{ padding: '52px 20px 0' }}>
+      <div style={{ padding: 'max(52px, calc(env(safe-area-inset-top) + 16px)) 20px 0' }}>
         <h1 style={{ fontSize: 24, fontWeight: 800, color: '#1A1D1A', margin: 0, letterSpacing: -0.5 }}>Profile</h1>
       </div>
 

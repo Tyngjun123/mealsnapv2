@@ -68,9 +68,9 @@ export default function ResultPage() {
   )
 
   return (
-    <div style={{ minHeight: '100vh', background: '#FAFAF7', paddingBottom: 120 }}>
+    <div style={{ minHeight: '100vh', background: '#FAFAF7', paddingBottom: 'max(120px, calc(env(safe-area-inset-bottom) + 100px))' }}>
       {/* Header */}
-      <div style={{ padding: '52px 16px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div style={{ padding: 'max(52px, calc(env(safe-area-inset-top) + 16px)) 16px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
         <button onClick={() => router.push('/camera')} style={{
           width: 36, height: 36, borderRadius: '50%', border: 'none',
           background: '#fff', cursor: 'pointer', fontSize: 18,
@@ -192,7 +192,7 @@ export default function ResultPage() {
       </div>
 
       {/* Confirm button */}
-      <div style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 448, padding: '16px 16px 32px', background: '#FAFAF7', borderTop: '1px solid rgba(0,0,0,0.05)' }}>
+      <div style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 448, padding: '16px 16px', paddingBottom: 'max(32px, calc(env(safe-area-inset-bottom) + 16px))', background: 'rgba(250,250,247,0.97)', backdropFilter: 'blur(12px)', borderTop: '1px solid rgba(0,0,0,0.05)' }}>
         <button onClick={handleSave} disabled={saving} className="btn-primary" style={{ width: '100%', fontSize: 16, opacity: saving ? 0.7 : 1 }}>
           {saving ? 'Saving...' : '✓ Confirm & Save Meal'}
         </button>

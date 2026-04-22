@@ -3,6 +3,7 @@
 @layer base {
   * {
     box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
   }
 
   html, body {
@@ -12,10 +13,16 @@
     color: #1A1D1A;
     font-family: 'Inter', -apple-system, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
+    overscroll-behavior: none;
   }
 
   ::-webkit-scrollbar { display: none; }
   scrollbar-width: none;
+
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+  input[type="range"] { -webkit-appearance: none; appearance: none; height: 4px; border-radius: 4px; }
+  input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: #4CAF50; cursor: pointer; box-shadow: 0 2px 6px rgba(76,175,80,0.4); }
 }
 
 @layer utilities {
@@ -38,17 +45,23 @@
   }
 
   .btn-primary {
-    background: #4CAF50;
+    background: linear-gradient(135deg, #4CAF50, #388E3C);
     color: #fff;
     border-radius: 16px;
     font-weight: 700;
-    padding: 14px 24px;
+    padding: 16px 24px;
     border: none;
     cursor: pointer;
-    transition: opacity 0.15s;
+    transition: all 0.15s;
     font-family: inherit;
+    font-size: 15px;
+    letter-spacing: 0.2px;
+    box-shadow: 0 4px 16px rgba(76,175,80,0.35);
   }
-  .btn-primary:active { opacity: 0.85; transform: scale(0.98); }
+  .btn-primary:active { opacity: 0.88; transform: scale(0.98); }
+
+  .page-top { padding-top: max(52px, calc(env(safe-area-inset-top) + 16px)); }
+  .page-bottom { padding-bottom: max(100px, calc(env(safe-area-inset-bottom) + 80px)); }
 
   .meal-icon-breakfast { background: #FFF8E1; }
   .meal-icon-lunch     { background: #E8F5E9; }

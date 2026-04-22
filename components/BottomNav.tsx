@@ -58,11 +58,13 @@ export function BottomNav() {
     <nav style={{
       position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)',
       width: '100%', maxWidth: 448,
-      background: 'rgba(255,255,255,0.95)',
-      backdropFilter: 'blur(12px)',
-      borderTop: '1px solid rgba(0,0,0,0.06)',
+      background: 'rgba(255,255,255,0.97)',
+      backdropFilter: 'blur(16px)',
+      WebkitBackdropFilter: 'blur(16px)',
+      borderTop: '1px solid rgba(0,0,0,0.07)',
       display: 'flex', alignItems: 'center',
-      padding: '8px 0 20px',
+      paddingTop: 8,
+      paddingBottom: 'max(16px, env(safe-area-inset-bottom))',
       zIndex: 50,
     }}>
       {tabs.map((tab) => {

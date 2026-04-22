@@ -47,7 +47,7 @@ export default function CameraPage() {
     }}>
       {/* Close */}
       <button onClick={() => router.push('/')} style={{
-        position: 'absolute', top: 52, left: 16, zIndex: 10,
+        position: 'absolute', top: 'max(52px, calc(env(safe-area-inset-top) + 12px))', left: 16, zIndex: 10,
         width: 40, height: 40, borderRadius: '50%',
         background: 'rgba(0,0,0,0.5)', border: 'none',
         color: '#fff', fontSize: 20, cursor: 'pointer',
@@ -56,7 +56,7 @@ export default function CameraPage() {
 
       {/* Meal type selector */}
       <div style={{
-        position: 'absolute', top: 48, left: '50%', transform: 'translateX(-50%)',
+        position: 'absolute', top: 'max(48px, calc(env(safe-area-inset-top) + 8px))', left: '50%', transform: 'translateX(-50%)',
         zIndex: 10, display: 'flex', gap: 6,
         background: 'rgba(0,0,0,0.5)', borderRadius: 999,
         padding: '4px 6px', backdropFilter: 'blur(8px)',
@@ -106,7 +106,8 @@ export default function CameraPage() {
 
       {/* Bottom controls */}
       <div style={{
-        padding: '24px 32px 48px',
+        padding: '24px 32px',
+        paddingBottom: 'max(48px, calc(env(safe-area-inset-bottom) + 24px))',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)',
       }}>

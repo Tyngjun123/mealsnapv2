@@ -73,9 +73,9 @@ export function HistoryView({ meals: initialMeals }: Props) {
   const sortedDates = Object.keys(grouped).sort((a, b) => new Date(b).getTime() - new Date(a).getTime())
 
   return (
-    <div style={{ paddingBottom: 100 }}>
+    <div className="page-bottom">
       {/* Header */}
-      <div style={{ padding: '52px 20px 16px' }}>
+      <div style={{ padding: 'max(52px, calc(env(safe-area-inset-top) + 16px)) 20px 16px' }}>
         <h1 style={{ fontSize: 24, fontWeight: 800, color: '#1A1D1A', margin: 0, letterSpacing: -0.5 }}>History</h1>
         <p style={{ fontSize: 13, color: '#6B7168', margin: '4px 0 0' }}>Last 30 days</p>
       </div>

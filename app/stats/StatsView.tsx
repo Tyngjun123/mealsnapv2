@@ -25,8 +25,8 @@ export function StatsView({ goal, totals }: Props) {
   })()
 
   return (
-    <div style={{ paddingBottom: 100 }}>
-      <div style={{ padding: '52px 20px 20px' }}>
+    <div className="page-bottom">
+      <div style={{ padding: 'max(52px, calc(env(safe-area-inset-top) + 16px)) 20px 20px' }}>
         <h1 style={{ fontSize: 24, fontWeight: 800, color: '#1A1D1A', margin: 0, letterSpacing: -0.5 }}>Stats</h1>
         <p style={{ fontSize: 13, color: '#6B7168', margin: '4px 0 0' }}>Last 30 days overview</p>
       </div>
