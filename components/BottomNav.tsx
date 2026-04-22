@@ -68,7 +68,7 @@ export function BottomNav() {
       {tabs.map((tab) => {
         const active = pathname === tab.href
         return (
-          <Link key={tab.href} href={tab.href} style={{
+          <Link key={tab.href} href={tab.href} prefetch={false} style={{
             flex: 1, display: 'flex', flexDirection: 'column',
             alignItems: 'center', gap: 4, textDecoration: 'none',
           }}>
