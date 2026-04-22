@@ -1,32 +1,26 @@
 'use client'
-// Phase 1: Simple name-based onboarding (no OAuth needed)
-// Phase 2: Re-enable Google login via LoginButton + NextAuth
-import { useState, useEffect } from 'react'
+// Phase 2: Google OAuth login
+import { useEffect } from 'react'
+import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { getProfile, saveProfile } from '@/lib/store'
+import { LoginButton } from './LoginButton'
 
 const FEATURES = [
   { emoji: '📸', text: 'Snap a photo → instant calorie count' },
   { emoji: '🧠', text: 'AI identifies every item on your plate' },
   { emoji: '📊', text: 'Track macros & daily nutrition goals' },
-  { emoji: '💾', text: 'Data saved locally on your device' },
+  { emoji: '☁️', text: 'Synced across all your devices' },
 ]
 
 export default function LoginPage() {
+  const { data: session, status } = useSession()
   const router = useRouter()
-  const [name, setName]     = useState('')
-  const [goal, setGoal]     = useState(2000)
-  const [step, setStep]     = useState<'splash' | 'setup'>('splash')
 
   useEffect(() => {
-    if (getProfile()) router.replace('/')
-  }, [router])
+    if (session) router.replace('/')
+  }, [session, router])
 
-  function handleStart() {
-    if (!name.trim()) return
-    saveProfile({ name: name.trim(), dailyGoalKcal: goal, heightCm: null, weightKg: null, age: null, isPro: false })
-    router.push('/')
-  }
+  if (status === 'loading') return null
 
   return (
     <div style={{
@@ -51,83 +45,26 @@ export default function LoginPage() {
         </p>
       </div>
 
-      {step === 'splash' ? (
-        <>
-          <div style={{ width: '100%', maxWidth: 320, marginBottom: 36 }}>
-            {FEATURES.map((f, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-                <span style={{
-                  width: 40, height: 40, borderRadius: 12, background: '#E8F5E9',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 20, flexShrink: 0,
-                }}>{f.emoji}</span>
-                <span style={{ fontSize: 14, color: '#1A1D1A', fontWeight: 500 }}>{f.text}</span>
-              </div>
-            ))}
+      {/* Features */}
+      <div style={{ width: '100%', maxWidth: 320, marginBottom: 36 }}>
+        {FEATURES.map((f, i) => (
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+            <span style={{
+              width: 40, height: 40, borderRadius: 12, background: '#E8F5E9',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 20, flexShrink: 0,
+            }}>{f.emoji}</span>
+            <span style={{ fontSize: 14, color: '#1A1D1A', fontWeight: 500 }}>{f.text}</span>
           </div>
-          <button onClick={() => setStep('setup')} className="btn-primary" style={{ width: '100%', maxWidth: 320, fontSize: 16 }}>
-            Get Started →
-          </button>
-        </>
-      ) : (
-        <div style={{ width: '100%', maxWidth: 320 }}>
-          <h2 style={{ fontSize: 22, fontWeight: 800, color: '#1A1D1A', margin: '0 0 24px', letterSpacing: -0.5 }}>
-            Quick setup
-          </h2>
+        ))}
+      </div>
 
-          {/* Name */}
-          <div style={{ marginBottom: 20 }}>
-            <label style={{ fontSize: 13, fontWeight: 700, color: '#6B7168', display: 'block', marginBottom: 8 }}>
-              YOUR NAME
-            </label>
-            <input
-              autoFocus
-              value={name}
-              onChange={e => setName(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleStart()}
-              placeholder="e.g. Alex"
-              style={{
-                width: '100%', padding: '14px 16px', borderRadius: 14,
-                border: '1.5px solid #E0E0E0', fontSize: 16,
-                fontFamily: 'inherit', outline: 'none',
-                transition: 'border-color 0.15s',
-              }}
-              onFocus={e => (e.target.style.borderColor = '#4CAF50')}
-              onBlur={e => (e.target.style.borderColor = '#E0E0E0')}
-            />
-          </div>
+      <LoginButton />
 
-          {/* Daily goal */}
-          <div style={{ marginBottom: 32 }}>
-            <label style={{ fontSize: 13, fontWeight: 700, color: '#6B7168', display: 'block', marginBottom: 8 }}>
-              DAILY CALORIE GOAL
-            </label>
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: 12,
-              background: '#fff', borderRadius: 14, padding: '14px 16px',
-              border: '1.5px solid #E0E0E0',
-            }}>
-              <input type="range" min={1000} max={4000} step={50} value={goal}
-                onChange={e => setGoal(Number(e.target.value))}
-                style={{ flex: 1, accentColor: '#4CAF50' }}/>
-              <span style={{ fontSize: 18, fontWeight: 800, color: '#4CAF50', minWidth: 60, textAlign: 'right' }}>
-                {goal}
-              </span>
-            </div>
-            <div style={{ fontSize: 11, color: '#9E9E9E', marginTop: 6 }}>
-              Recommended: 1800–2200 kcal for most adults
-            </div>
-          </div>
-
-          <button
-            onClick={handleStart}
-            disabled={!name.trim()}
-            className="btn-primary"
-            style={{ width: '100%', fontSize: 16, opacity: name.trim() ? 1 : 0.5 }}>
-            Start Tracking 🚀
-          </button>
-        </div>
-      )}
+      <p style={{ marginTop: 20, fontSize: 12, color: '#6B7168', textAlign: 'center', maxWidth: 280 }}>
+        By signing in, you agree to our Terms of Service.<br />
+        Your data is stored securely on your device.
+      </p>
     </div>
   )
 }

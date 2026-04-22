@@ -1,12 +1,14 @@
 'use client'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import { BottomNav } from '@/components/BottomNav'
 import { CalorieRing } from '@/components/CalorieRing'
 import { MacroBar } from '@/components/MacroBar'
 import { MealCard } from '@/components/MealCard'
-import { getProfile, getTodayMeals, getTodayMacros, deleteMeal, type Meal } from '@/lib/store'
+import { getProfile, saveProfile, getTodayMeals, getTodayMacros, deleteMeal, type Meal } from '@/lib/store'
 
 function greeting() {
   const h = new Date().getHours()
@@ -17,6 +19,7 @@ function greeting() {
 
 export default function HomeDashboard() {
   const router = useRouter()
+  const { data: session } = useSession()
   const [profile, setProfile] = useState<ReturnType<typeof getProfile>>(null)
   const [meals, setMeals]     = useState<Meal[]>([])
   const [macros, setMacros]   = useState({ protein: 0, carbs: 0, fat: 0 })
@@ -24,12 +27,17 @@ export default function HomeDashboard() {
 
   useEffect(() => {
     setMounted(true)
-    const p = getProfile()
+    let p = getProfile()
+    // Auto-create profile from Google session if none exists
+    if (!p && session?.user) {
+      p = { name: session.user.name ?? 'User', dailyGoalKcal: 2000, heightCm: null, weightKg: null, age: null, isPro: false }
+      saveProfile(p)
+    }
     if (!p) { router.replace('/login'); return }
     setProfile(p)
     setMeals(getTodayMeals())
     setMacros(getTodayMacros())
-  }, [router])
+  }, [router, session])
 
   function handleDelete(id: string) {
     deleteMeal(id)
@@ -52,6 +60,10 @@ export default function HomeDashboard() {
             {greeting()}, {profile.name.split(' ')[0]} 👋
           </h1>
         </div>
+        {session?.user?.image && (
+          <Image src={session.user.image} alt="avatar" width={40} height={40}
+            style={{ borderRadius: '50%', border: '2px solid #E8F5E9' }} />
+        )}
       </div>
 
       {/* Calorie Ring Card */}
