@@ -2,12 +2,9 @@
 import { useRef, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 
-const MEAL_TYPES = ['Breakfast', 'Lunch', 'Dinner', 'Snack']
-
 export default function CameraPage() {
   const router = useRouter()
   const fileRef = useRef<HTMLInputElement>(null)
-  const [mealType, setMealType] = useState('Dinner')
   const [preview, setPreview] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -22,12 +19,12 @@ export default function CameraPage() {
     const file = fileRef.current.files[0]
     const formData = new FormData()
     formData.append('image', file)
-    formData.append('mealType', mealType.toLowerCase())
+    formData.append('mealType', 'dinner')
     try {
       const res = await fetch('/api/analyze', { method: 'POST', body: formData })
       if (!res.ok) throw new Error('Analysis failed')
       const data = await res.json()
-      sessionStorage.setItem('analyzeResult', JSON.stringify({ ...data, mealType: mealType.toLowerCase() }))
+      sessionStorage.setItem('analyzeResult', JSON.stringify({ ...data, mealType: 'dinner' }))
       router.push('/result')
     } catch {
       alert('Failed to analyze image. Please try again.')
@@ -55,40 +52,19 @@ export default function CameraPage() {
         }}/>
       )}
 
-      {/* Top overlay: close + meal type */}
+      {/* Top overlay: close only */}
       <div style={{
         position: 'relative', zIndex: 10,
         paddingTop: 'max(52px, calc(env(safe-area-inset-top) + 12px))',
         paddingLeft: 16, paddingRight: 16, paddingBottom: 12,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        background: 'linear-gradient(to bottom, rgba(0,0,0,0.55), transparent)',
+        background: 'linear-gradient(to bottom, rgba(0,0,0,0.45), transparent)',
       }}>
         <button onClick={() => router.push('/')} style={{
           width: 36, height: 36, borderRadius: '50%',
           background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.2)',
           color: '#fff', fontSize: 18, cursor: 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          flexShrink: 0,
         }}>×</button>
-
-        <div style={{
-          display: 'flex', gap: 4,
-          background: 'rgba(0,0,0,0.45)', borderRadius: 999,
-          padding: '4px 5px', backdropFilter: 'blur(10px)',
-          WebkitBackdropFilter: 'blur(10px)',
-        }}>
-          {MEAL_TYPES.map(t => (
-            <button key={t} onClick={() => setMealType(t)} style={{
-              padding: '6px 11px', borderRadius: 999, border: 'none', cursor: 'pointer',
-              background: mealType === t ? '#4CAF50' : 'transparent',
-              color: mealType === t ? '#fff' : 'rgba(255,255,255,0.65)',
-              fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
-              transition: 'all 0.15s',
-            }}>{t}</button>
-          ))}
-        </div>
-
-        <div style={{ width: 36 }}/>
       </div>
 
       {/* Viewfinder (empty state) */}

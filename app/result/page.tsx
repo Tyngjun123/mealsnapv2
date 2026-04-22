@@ -13,6 +13,7 @@ export default function ResultPage() {
   const router = useRouter()
   const [data, setData] = useState<ResultData | null>(null)
   const [foods, setFoods] = useState<DetectedFood[]>([])
+  const [mealType, setMealType] = useState('dinner')
   const [saving, setSaving] = useState(false)
   const [editingIdx, setEditingIdx] = useState<number | null>(null)
 
@@ -22,6 +23,7 @@ export default function ResultPage() {
     const parsed = JSON.parse(raw) as ResultData
     setData(parsed)
     setFoods(parsed.foods)
+    setMealType(parsed.mealType ?? 'dinner')
   }, [router])
 
   const totalKcal = foods.reduce((s, f) => s + f.calories_kcal, 0)
@@ -37,7 +39,7 @@ export default function ResultPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          mealType: data.mealType,
+          mealType,
           imageUrl: data.imageUrl,
           totalKcal,
           foodItems: foods.map(f => ({
@@ -88,15 +90,17 @@ export default function ResultPage() {
         </div>
       )}
 
-      {/* Meal type badge */}
-      <div style={{ padding: '0 16px 12px' }}>
-        <span style={{
-          background: '#E8F5E9', color: '#2E7D32',
-          padding: '4px 12px', borderRadius: 999,
-          fontSize: 12, fontWeight: 700, textTransform: 'capitalize',
-        }}>
-          {data.mealType}
-        </span>
+      {/* Meal type selector */}
+      <div style={{ padding: '0 16px 12px', display: 'flex', gap: 8 }}>
+        {['breakfast', 'lunch', 'dinner', 'snack'].map(t => (
+          <button key={t} onClick={() => setMealType(t)} style={{
+            padding: '6px 14px', borderRadius: 999, border: 'none', cursor: 'pointer',
+            background: mealType === t ? '#4CAF50' : '#F0F0EC',
+            color: mealType === t ? '#fff' : '#6B7168',
+            fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
+            textTransform: 'capitalize', transition: 'all 0.15s',
+          }}>{t}</button>
+        ))}
       </div>
 
       {/* Food items */}
