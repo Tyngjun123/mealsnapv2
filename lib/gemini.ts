@@ -27,7 +27,7 @@ Return ONLY the JSON array, no explanation, no markdown.`
 
 export async function analyzeMealImage(base64Image: string, mediaType: string): Promise<DetectedFood[]> {
   const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${process.env.GEMINI_API_KEY}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
