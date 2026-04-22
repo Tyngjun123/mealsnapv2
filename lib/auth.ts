@@ -1,6 +1,5 @@
 import type { NextAuthOptions } from 'next-auth'
 import GoogleProvider from 'next-auth/providers/google'
-import { upsertUser } from './db'
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -11,14 +10,11 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async signIn({ user, account }) {
-      if (account?.provider === 'google' && user.email) {
-        await upsertUser({
-          googleId: account.providerAccountId,
-          email: user.email,
-          name: user.name ?? '',
-          avatarUrl: user.image ?? '',
-        })
-      }
+      // Phase 3: uncomment to persist user to Vercel Postgres
+      // if (account?.provider === 'google' && user.email) {
+      //   const { upsertUser } = await import('./db')
+      //   await upsertUser({ googleId: account.providerAccountId, email: user.email, name: user.name ?? '', avatarUrl: user.image ?? '' })
+      // }
       return true
     },
     async session({ session, token }) {
