@@ -56,12 +56,13 @@ export default function CameraPage() {
         }}/>
       )}
 
-      {/* Top overlay: close only */}
+      {/* Top overlay */}
       <div style={{
         position: 'relative', zIndex: 10,
         paddingTop: 'max(52px, calc(env(safe-area-inset-top) + 12px))',
         paddingLeft: 16, paddingRight: 16, paddingBottom: 12,
-        background: 'linear-gradient(to bottom, rgba(0,0,0,0.45), transparent)',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        background: 'linear-gradient(to bottom, rgba(0,0,0,0.5), transparent)',
       }}>
         <button onClick={() => router.push('/')} style={{
           width: 36, height: 36, borderRadius: '50%',
@@ -69,6 +70,23 @@ export default function CameraPage() {
           color: '#fff', fontSize: 18, cursor: 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>×</button>
+        <div style={{ display: 'flex', gap: 6 }}>
+          {[
+            { icon: '📦', label: 'Barcode', path: '/barcode' },
+            { icon: '✏️', label: 'Manual', path: '/manual' },
+          ].map(m => (
+            <button key={m.label} onClick={() => router.push(m.path)} style={{
+              padding: '6px 12px', borderRadius: 999,
+              background: 'rgba(0,0,0,0.45)', border: '1px solid rgba(255,255,255,0.2)',
+              color: '#fff', fontSize: 12, fontWeight: 600,
+              cursor: 'pointer', fontFamily: 'inherit',
+              display: 'flex', alignItems: 'center', gap: 4,
+              backdropFilter: 'blur(8px)',
+            }}>
+              <span>{m.icon}</span><span>{m.label}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Viewfinder (empty state) */}
