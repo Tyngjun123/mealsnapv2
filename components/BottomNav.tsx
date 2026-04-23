@@ -8,7 +8,7 @@ const tabs = [
     href: '/',
     label: 'Home',
     icon: (active: boolean) => (
-      <svg width="22" height="22" fill="none" viewBox="0 0 24 24">
+      <svg width="20" height="20" fill="none" viewBox="0 0 24 24">
         <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H5a1 1 0 01-1-1V9.5z"
           stroke={active ? '#4CAF50' : '#6B7168'} strokeWidth="2"
           fill={active ? '#E8F5E9' : 'none'} strokeLinejoin="round"/>
@@ -20,7 +20,7 @@ const tabs = [
     href: '/history',
     label: 'History',
     icon: (active: boolean) => (
-      <svg width="22" height="22" fill="none" viewBox="0 0 24 24">
+      <svg width="20" height="20" fill="none" viewBox="0 0 24 24">
         <rect x="3" y="4" width="18" height="18" rx="3"
           stroke={active ? '#4CAF50' : '#6B7168'} strokeWidth="2"
           fill={active ? '#E8F5E9' : 'none'}/>
@@ -30,10 +30,21 @@ const tabs = [
     ),
   },
   {
+    href: '/workout',
+    label: 'Move',
+    icon: (active: boolean) => (
+      <svg width="20" height="20" fill="none" viewBox="0 0 24 24">
+        <path d="M13 2L4.5 13.5H11L10 22L19.5 10.5H13L13 2Z"
+          stroke={active ? '#4CAF50' : '#6B7168'} strokeWidth="2"
+          fill={active ? '#E8F5E9' : 'none'} strokeLinejoin="round"/>
+      </svg>
+    ),
+  },
+  {
     href: '/stats',
     label: 'Stats',
     icon: (active: boolean) => (
-      <svg width="22" height="22" fill="none" viewBox="0 0 24 24">
+      <svg width="20" height="20" fill="none" viewBox="0 0 24 24">
         <path d="M4 20V14M8 20V8M12 20V12M16 20V4M20 20V10"
           stroke={active ? '#4CAF50' : '#6B7168'} strokeWidth="2.5" strokeLinecap="round"/>
       </svg>
@@ -43,7 +54,7 @@ const tabs = [
     href: '/profile',
     label: 'Profile',
     icon: (active: boolean) => (
-      <svg width="22" height="22" fill="none" viewBox="0 0 24 24">
+      <svg width="20" height="20" fill="none" viewBox="0 0 24 24">
         <circle cx="12" cy="8" r="4" stroke={active ? '#4CAF50' : '#6B7168'} strokeWidth="2"
           fill={active ? '#E8F5E9' : 'none'}/>
         <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke={active ? '#4CAF50' : '#6B7168'} strokeWidth="2" strokeLinecap="round"/>

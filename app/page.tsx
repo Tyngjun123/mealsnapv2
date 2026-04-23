@@ -1,7 +1,7 @@
 import { getServerSession } from 'next-auth'
 import { redirect } from 'next/navigation'
 import { authOptions } from '@/lib/auth'
-import { getHomeData } from '@/lib/db'
+import { getHomeData, getTodayWorkouts, getUserByGoogleId } from '@/lib/db'
 import { HomeDashboard } from './HomeDashboard'
 
 export default async function HomePage() {
@@ -9,9 +9,15 @@ export default async function HomePage() {
   if (!session?.user) redirect('/login')
 
   const googleId = (session.user as { id?: string }).id ?? ''
-  const data = await getHomeData(googleId)
-  if (!data) redirect('/login')
+  const [data, dbUser] = await Promise.all([
+    getHomeData(googleId),
+    getUserByGoogleId(googleId),
+  ])
+  if (!data || !dbUser) redirect('/login')
   const { user, meals } = data
+
+  const workouts = await getTodayWorkouts(dbUser.id)
+  const burned = workouts.reduce((s, w) => s + w.kcal_burned, 0)
 
   const eaten   = meals.reduce((s, m) => s + m.total_kcal, 0)
   const protein = meals.reduce((s, m) => s + (m.food_items?.reduce((a, f) => a + f.protein_g, 0) ?? 0), 0)
@@ -22,6 +28,7 @@ export default async function HomePage() {
     <HomeDashboard
       user={{ name: user.name, avatarUrl: user.avatar_url, dailyGoal: user.daily_goal_kcal }}
       eaten={Math.round(eaten)}
+      burned={Math.round(burned)}
       macros={{ protein: Math.round(protein), carbs: Math.round(carbs), fat: Math.round(fat) }}
       meals={meals.map(m => ({
         id: m.id,

@@ -28,6 +28,15 @@ export interface WeightLog {
   notes: string | null
 }
 
+export interface Workout {
+  id: string
+  user_id: string
+  exercise: string
+  duration_min: number
+  kcal_burned: number
+  logged_at: string
+}
+
 export interface Meal {
   id: string
   user_id: string
@@ -122,6 +131,19 @@ export async function migrate() {
       updated_at TIMESTAMPTZ DEFAULT NOW()
     )
   `
+
+  await sql`
+    CREATE TABLE IF NOT EXISTS workouts (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+      exercise TEXT NOT NULL,
+      duration_min INTEGER NOT NULL,
+      kcal_burned INTEGER NOT NULL,
+      logged_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `
+  await sql`CREATE INDEX IF NOT EXISTS idx_workouts_user_id ON workouts(user_id)`
+  await sql`CREATE INDEX IF NOT EXISTS idx_workouts_logged_at ON workouts(logged_at)`
 }
 
 // ─── Combined Queries (fewer roundtrips) ─────────────────────────────────────
@@ -266,6 +288,29 @@ export async function getPushSubscriptions(): Promise<{ user_id: string; subscri
 
 export async function deletePushSubscription(userId: string) {
   await sql`DELETE FROM push_subscriptions WHERE user_id = ${userId}`
+}
+
+export async function logWorkout(userId: string, exercise: string, durationMin: number, kcalBurned: number): Promise<Workout> {
+  const result = await sql<Workout>`
+    INSERT INTO workouts (user_id, exercise, duration_min, kcal_burned)
+    VALUES (${userId}, ${exercise}, ${durationMin}, ${kcalBurned})
+    RETURNING *
+  `
+  return result.rows[0]
+}
+
+export async function getTodayWorkouts(userId: string): Promise<Workout[]> {
+  const result = await sql<Workout>`
+    SELECT * FROM workouts
+    WHERE user_id = ${userId}
+      AND logged_at::date = CURRENT_DATE
+    ORDER BY logged_at DESC
+  `
+  return result.rows
+}
+
+export async function deleteWorkout(workoutId: string, userId: string) {
+  await sql`DELETE FROM workouts WHERE id = ${workoutId} AND user_id = ${userId}`
 }
 
 export async function getWeightLogs(userId: string, limit = 60): Promise<WeightLog[]> {

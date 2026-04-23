@@ -1,5 +1,5 @@
 'use client'
-import { useRef, useState, useCallback, useEffect } from 'react'
+import { useRef, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 
 export default function CameraPage() {
@@ -7,11 +7,6 @@ export default function CameraPage() {
   const fileRef = useRef<HTMLInputElement>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-
-  useEffect(() => {
-    const t = setTimeout(() => fileRef.current?.click(), 120)
-    return () => clearTimeout(t)
-  }, [])
 
   const handleFile = useCallback((file: File) => {
     const url = URL.createObjectURL(file)
@@ -94,11 +89,11 @@ export default function CameraPage() {
         </div>
       </div>
 
-      {/* Viewfinder (empty state) */}
+      {/* Viewfinder (empty state) — entire area is a tap target */}
       {!preview && (
-        <div style={{
+        <label htmlFor="camera-input" style={{
           flex: 1, display: 'flex', alignItems: 'center',
-          justifyContent: 'center', position: 'relative',
+          justifyContent: 'center', position: 'relative', cursor: 'pointer',
         }}>
           {/* Corner brackets */}
           {([
@@ -114,12 +109,12 @@ export default function CameraPage() {
               borderWidth: i === 0 ? '2px 0 0 2px' : i === 1 ? '2px 2px 0 0' : i === 2 ? '0 0 2px 2px' : '0 2px 2px 0',
             }}/>
           ))}
-          <div style={{ textAlign: 'center', color: 'rgba(255,255,255,0.5)' }}>
-            <div style={{ fontSize: 44, marginBottom: 10 }}>📷</div>
-            <div style={{ fontSize: 14, fontWeight: 600 }}>Tap to choose a photo</div>
-            <div style={{ fontSize: 12, marginTop: 4, opacity: 0.6 }}>or use your gallery</div>
+          <div style={{ textAlign: 'center', color: 'rgba(255,255,255,0.6)' }}>
+            <div style={{ fontSize: 52, marginBottom: 12 }}>📷</div>
+            <div style={{ fontSize: 15, fontWeight: 700 }}>Tap to open camera</div>
+            <div style={{ fontSize: 12, marginTop: 6, opacity: 0.6 }}>or use gallery below</div>
           </div>
-        </div>
+        </label>
       )}
 
       {/* Spacer when preview is shown */}
@@ -173,6 +168,7 @@ export default function CameraPage() {
       </div>
 
       <input
+        id="camera-input"
         ref={fileRef} type="file" accept="image/*" capture="environment"
         style={{ display: 'none' }}
         onChange={e => { if (e.target.files?.[0]) handleFile(e.target.files[0]) }}

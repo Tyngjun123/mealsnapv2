@@ -2,6 +2,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { BottomNav } from '@/components/BottomNav'
 import { CalorieRing } from '@/components/CalorieRing'
 import { MacroBar } from '@/components/MacroBar'
@@ -10,6 +11,7 @@ import { MealCard } from '@/components/MealCard'
 interface Props {
   user: { name: string; avatarUrl: string; dailyGoal: number }
   eaten: number
+  burned: number
   macros: { protein: number; carbs: number; fat: number }
   meals: Array<{
     id: string
@@ -28,9 +30,11 @@ function greeting() {
   return 'Good evening'
 }
 
-export function HomeDashboard({ user, eaten, macros, meals: initialMeals }: Props) {
+export function HomeDashboard({ user, eaten, burned, macros, meals: initialMeals }: Props) {
   const [meals, setMeals] = useState(initialMeals)
+  const router = useRouter()
   const today = new Date().toLocaleDateString('en', { weekday: 'long', month: 'long', day: 'numeric' })
+  const net = user.dailyGoal - eaten + burned
 
   async function handleDelete(id: string) {
     await fetch(`/api/meals?id=${id}`, { method: 'DELETE' })
@@ -58,6 +62,29 @@ export function HomeDashboard({ user, eaten, macros, meals: initialMeals }: Prop
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
           <CalorieRing eaten={eaten} goal={user.dailyGoal} size={180} />
         </div>
+        {burned > 0 && (
+          <button onClick={() => router.push('/workout')} style={{
+            display: 'flex', justifyContent: 'space-around', alignItems: 'center',
+            background: '#F1F8E9', borderRadius: 12, padding: '10px 12px',
+            marginBottom: 14, border: 'none', cursor: 'pointer', width: '100%',
+            fontFamily: 'inherit', WebkitTapHighlightColor: 'transparent',
+          }}>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: 11, color: '#6B7168' }}>Eaten</div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: '#1A1D1A' }}>{eaten}</div>
+            </div>
+            <div style={{ fontSize: 16, color: '#9E9E9E' }}>−</div>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: 11, color: '#6B7168' }}>🔥 Burned</div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: '#4CAF50' }}>{burned}</div>
+            </div>
+            <div style={{ fontSize: 16, color: '#9E9E9E' }}>=</div>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: 11, color: '#6B7168' }}>Net left</div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: net < 0 ? '#E53935' : '#1A1D1A' }}>{net}</div>
+            </div>
+          </button>
+        )}
         <MacroBar protein={macros.protein} carbs={macros.carbs} fat={macros.fat} />
       </div>
 
