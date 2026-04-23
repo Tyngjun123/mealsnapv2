@@ -14,6 +14,18 @@ export interface User {
   age: number | null
   is_pro: boolean
   created_at: string
+  goal_weight_kg: number | null
+  activity_level: string | null
+  weekly_goal: string | null
+  sex: string | null
+}
+
+export interface WeightLog {
+  id: string
+  user_id: string
+  weight_kg: number
+  logged_at: string
+  notes: string | null
 }
 
 export interface Meal {
@@ -83,6 +95,25 @@ export async function migrate() {
   await sql`CREATE INDEX IF NOT EXISTS idx_meals_user_id ON meals(user_id)`
   await sql`CREATE INDEX IF NOT EXISTS idx_meals_eaten_at ON meals(eaten_at)`
   await sql`CREATE INDEX IF NOT EXISTS idx_food_items_meal_id ON food_items(meal_id)`
+
+  // Phase 3 additions: goals columns
+  await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS goal_weight_kg FLOAT`
+  await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS activity_level TEXT DEFAULT 'moderate'`
+  await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS weekly_goal TEXT DEFAULT 'maintain'`
+  await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS sex TEXT`
+
+  // Weight logs table
+  await sql`
+    CREATE TABLE IF NOT EXISTS weight_logs (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+      weight_kg FLOAT NOT NULL,
+      logged_at TIMESTAMPTZ DEFAULT NOW(),
+      notes TEXT
+    )
+  `
+  await sql`CREATE INDEX IF NOT EXISTS idx_weight_logs_user_id ON weight_logs(user_id)`
+  await sql`CREATE INDEX IF NOT EXISTS idx_weight_logs_logged_at ON weight_logs(logged_at)`
 }
 
 // ─── User Queries ─────────────────────────────────────────────────────────────
@@ -140,6 +171,47 @@ export async function updateUser(googleId: string, data: Partial<{
   if (data.name !== undefined) {
     await sql`UPDATE users SET name = ${data.name} WHERE google_id = ${googleId}`
   }
+}
+
+export async function updateUserGoals(googleId: string, data: Partial<{
+  goal_weight_kg: number | null
+  activity_level: string
+  weekly_goal: string
+  sex: string
+}>) {
+  if (data.goal_weight_kg !== undefined) {
+    await sql`UPDATE users SET goal_weight_kg = ${data.goal_weight_kg} WHERE google_id = ${googleId}`
+  }
+  if (data.activity_level !== undefined) {
+    await sql`UPDATE users SET activity_level = ${data.activity_level} WHERE google_id = ${googleId}`
+  }
+  if (data.weekly_goal !== undefined) {
+    await sql`UPDATE users SET weekly_goal = ${data.weekly_goal} WHERE google_id = ${googleId}`
+  }
+  if (data.sex !== undefined) {
+    await sql`UPDATE users SET sex = ${data.sex} WHERE google_id = ${googleId}`
+  }
+}
+
+// ─── Weight Log Queries ────────────────────────────────────────────────────────
+
+export async function addWeightLog(userId: string, weightKg: number, notes?: string) {
+  const result = await sql<WeightLog>`
+    INSERT INTO weight_logs (user_id, weight_kg, notes)
+    VALUES (${userId}, ${weightKg}, ${notes ?? null})
+    RETURNING *
+  `
+  return result.rows[0]
+}
+
+export async function getWeightLogs(userId: string, limit = 60): Promise<WeightLog[]> {
+  const result = await sql<WeightLog>`
+    SELECT * FROM weight_logs
+    WHERE user_id = ${userId}
+    ORDER BY logged_at DESC
+    LIMIT ${limit}
+  `
+  return result.rows
 }
 
 // ─── Meal Queries ─────────────────────────────────────────────────────────────
