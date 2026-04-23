@@ -7,7 +7,7 @@ const SECTIONS = [
   {
     title: 'Account',
     items: [
-      { icon: '👤', label: 'Profile',            path: '/profile' },
+      { icon: '👤', label: 'Edit Profile',        path: '/settings/profile' },
       { icon: '🎯', label: 'Goals',               path: '/goals'   },
       { icon: '📊', label: 'Progress',            path: '/progress' },
       { icon: '🍽️', label: 'Nutrition Details',  path: '/nutrition' },

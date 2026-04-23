@@ -326,6 +326,22 @@ export async function deleteWorkout(workoutId: string, userId: string) {
   await sql`DELETE FROM workouts WHERE id = ${workoutId} AND user_id = ${userId}`
 }
 
+export async function getProfileStats(userId: string) {
+  const [totalRes, weekRes] = await Promise.all([
+    sql<{ count: string }>`SELECT COUNT(*) as count FROM meals WHERE user_id = ${userId}`,
+    sql<{ day: string; kcal: number }>`
+      SELECT eaten_at::date AS day, SUM(total_kcal) AS kcal
+      FROM meals WHERE user_id = ${userId}
+        AND eaten_at >= NOW() - INTERVAL '7 days'
+      GROUP BY eaten_at::date
+    `,
+  ])
+  const totalMeals = parseInt(totalRes.rows[0]?.count ?? '0')
+  const days = weekRes.rows
+  const avgKcal = days.length ? Math.round(days.reduce((s, d) => s + Number(d.kcal), 0) / days.length) : 0
+  return { totalMeals, avgKcalThisWeek: avgKcal, activeDaysThisWeek: days.length }
+}
+
 export async function getStreak(userId: string): Promise<number> {
   const result = await sql<{ day: string }>`
     SELECT DISTINCT eaten_at::date AS day

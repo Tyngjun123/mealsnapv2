@@ -281,8 +281,17 @@ export default function ResultPage() {
       </div>
 
       {/* Confirm button */}
-      <div style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 448, padding: '16px 16px', paddingBottom: 'max(32px, calc(env(safe-area-inset-bottom) + 16px))', background: 'rgba(250,250,247,0.97)', backdropFilter: 'blur(12px)', borderTop: '1px solid rgba(0,0,0,0.05)' }}>
-        <button onClick={handleSave} disabled={saving} className="btn-primary" style={{ width: '100%', fontSize: 16, opacity: saving ? 0.7 : 1 }}>
+      <div style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 448, padding: '12px 16px', paddingBottom: 'max(28px, calc(env(safe-area-inset-bottom) + 12px))', background: 'rgba(250,250,247,0.97)', backdropFilter: 'blur(12px)', borderTop: '1px solid rgba(0,0,0,0.05)', display: 'flex', gap: 10 }}>
+        <button
+          onClick={() => {
+            const text = `🍽️ ${foods.map(f => f.name).join(', ')}\n⚡ ${totalKcal} kcal · P:${Math.round(totalProtein)}g C:${Math.round(totalCarbs)}g F:${Math.round(totalFat)}g\n\nLogged with MealSnap!`
+            if (navigator.share) navigator.share({ title: 'My Meal', text })
+            else { navigator.clipboard.writeText(text); alert('Copied!') }
+          }}
+          style={{ width: 50, height: 50, borderRadius: 14, border: '1.5px solid #E0E0E0', background: '#fff', cursor: 'pointer', fontSize: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          ↑
+        </button>
+        <button onClick={handleSave} disabled={saving} className="btn-primary" style={{ flex: 1, fontSize: 16, opacity: saving ? 0.7 : 1 }}>
           {saving ? 'Saving...' : '✓ Confirm & Save Meal'}
         </button>
       </div>
