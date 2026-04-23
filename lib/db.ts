@@ -333,7 +333,7 @@ export async function getStreak(userId: string): Promise<number> {
       AND eaten_at::date >= CURRENT_DATE - 365
     ORDER BY day DESC
   `
-  const days = result.rows.map(r => r.day.slice(0, 10))
+  const days = result.rows.map(r => new Date(r.day).toISOString().slice(0, 10))
   if (days.length === 0) return 0
 
   // Build a Set for O(1) lookup
