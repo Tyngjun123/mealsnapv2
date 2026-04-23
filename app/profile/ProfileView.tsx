@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { signOut } from 'next-auth/react'
 import { BottomNav } from '@/components/BottomNav'
 
@@ -11,6 +12,7 @@ interface UserProfile {
 interface Props { user: UserProfile }
 
 export function ProfileView({ user }: Props) {
+  const router = useRouter()
   const [goal, setGoal]     = useState(user.dailyGoalKcal)
   const [height, setHeight] = useState(user.heightCm?.toString() ?? '')
   const [weight, setWeight] = useState(user.weightKg?.toString() ?? '')
@@ -153,6 +155,28 @@ export function ProfileView({ user }: Props) {
         <button onClick={handleSave} className="btn-primary" style={{ width: '100%', fontSize: 15 }}>
           {saved ? '✓ Saved!' : 'Save Changes'}
         </button>
+      </div>
+
+      {/* Quick links */}
+      <div className="card" style={{ margin: '0 16px 12px', padding: '8px 0', overflow: 'hidden' }}>
+        {[
+          { emoji: '🎯', label: 'Goals',             action: () => router.push('/goals'),    color: '#1A1D1A' },
+          { emoji: '📈', label: 'Progress',          action: () => router.push('/progress'), color: '#1A1D1A' },
+          { emoji: '🥗', label: 'Nutrition Details', action: () => router.push('/nutrition'), color: '#1A1D1A' },
+          { emoji: '⚙️', label: 'Settings',          action: () => router.push('/settings'), color: '#1A1D1A' },
+        ].map((item, i) => (
+          <button key={item.label} onClick={item.action} style={{
+            width: '100%', padding: '14px 16px',
+            display: 'flex', alignItems: 'center', gap: 12,
+            background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+            borderTop: i > 0 ? '1px solid rgba(0,0,0,0.05)' : 'none',
+            textAlign: 'left',
+          }}>
+            <span style={{ fontSize: 22 }}>{item.emoji}</span>
+            <span style={{ fontSize: 15, fontWeight: 600, color: item.color, flex: 1 }}>{item.label}</span>
+            <span style={{ color: '#C0C0C0' }}>›</span>
+          </button>
+        ))}
       </div>
 
       {/* Actions */}
