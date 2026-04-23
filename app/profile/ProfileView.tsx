@@ -49,12 +49,29 @@ export function ProfileView({ user }: Props) {
     signOut({ callbackUrl: '/login' })
   }
 
+  const isGuest = user.email.endsWith('@guest')
+
   return (
     <div className="page-bottom">
       {/* Header */}
       <div style={{ padding: 'max(52px, calc(env(safe-area-inset-top) + 16px)) 20px 0' }}>
         <h1 style={{ fontSize: 24, fontWeight: 800, color: '#1A1D1A', margin: 0, letterSpacing: -0.5 }}>Profile</h1>
       </div>
+
+      {/* Guest banner */}
+      {isGuest && (
+        <div style={{ margin: '12px 16px 0', padding: '14px 16px', borderRadius: 16, background: '#FFF8E1', border: '1px solid #FFE082', display: 'flex', alignItems: 'center', gap: 12 }}>
+          <span style={{ fontSize: 22, flexShrink: 0 }}>⚠️</span>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#5D4037' }}>Guest session</div>
+            <div style={{ fontSize: 12, color: '#795548', marginTop: 2 }}>Data will be lost when you sign out.</div>
+          </div>
+          <button onClick={() => signOut({ callbackUrl: '/login' })} style={{
+            padding: '8px 14px', borderRadius: 10, border: 'none', cursor: 'pointer',
+            background: '#4CAF50', color: '#fff', fontSize: 12, fontWeight: 700, fontFamily: 'inherit', flexShrink: 0,
+          }}>Sign In</button>
+        </div>
+      )}
 
       {/* User card */}
       <div className="card" style={{ margin: '16px 16px', padding: '20px', display: 'flex', alignItems: 'center', gap: 14 }}>
