@@ -46,8 +46,8 @@ export function HomeDashboard({ user, eaten, burned, macros, meals: initialMeals
       {/* Header */}
       <div style={{ padding: 'max(52px, calc(env(safe-area-inset-top) + 16px)) 20px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
-          <div style={{ fontSize: 13, color: '#6B7168', fontWeight: 500 }}>{today}</div>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: '#1A1D1A', margin: '4px 0 0', letterSpacing: -0.5 }}>
+          <div style={{ fontSize: 13, color: '#6B7168', fontWeight: 500 }} suppressHydrationWarning>{today}</div>
+          <h1 style={{ fontSize: 22, fontWeight: 800, color: '#1A1D1A', margin: '4px 0 0', letterSpacing: -0.5 }} suppressHydrationWarning>
             {greeting()}, {user.name.split(' ')[0]} 👋
           </h1>
         </div>

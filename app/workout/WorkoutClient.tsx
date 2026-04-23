@@ -73,7 +73,7 @@ export function WorkoutClient({ weightKg, initialWorkouts }: Props) {
     <div className="page-bottom" style={{ background: '#FAFAF7' }}>
       <div style={{ padding: 'max(52px, calc(env(safe-area-inset-top) + 16px)) 16px 16px' }}>
         <h1 style={{ fontSize: 22, fontWeight: 800, color: '#1A1D1A', margin: 0 }}>Today's Activity</h1>
-        <div style={{ fontSize: 13, color: '#6B7168', marginTop: 2 }}>
+        <div style={{ fontSize: 13, color: '#6B7168', marginTop: 2 }} suppressHydrationWarning>
           {new Date().toLocaleDateString('en', { weekday: 'long', month: 'long', day: 'numeric' })}
         </div>
       </div>
