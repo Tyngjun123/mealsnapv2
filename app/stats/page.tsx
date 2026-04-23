@@ -9,10 +9,8 @@ export default async function StatsPage() {
   if (!session?.user) redirect('/login')
 
   const googleId = (session.user as { id?: string }).id ?? ''
-  const [user, totals] = await Promise.all([
-    getUserByGoogleId(googleId),
-    getDailyTotals(googleId, 30).catch(() => []),
-  ])
+  const user = await getUserByGoogleId(googleId)
+  const totals = await getDailyTotals(user?.id ?? '', 30).catch(() => [])
 
   return (
     <StatsView

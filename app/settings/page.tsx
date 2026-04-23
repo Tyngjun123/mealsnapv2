@@ -1,6 +1,7 @@
 'use client'
 import { useRouter } from 'next/navigation'
 import { signOut } from 'next-auth/react'
+import { BottomNav } from '@/components/BottomNav'
 
 const SECTIONS = [
   {
@@ -50,8 +51,9 @@ export default function SettingsPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#FAFAF7', paddingBottom: 40 }}>
-      <div style={{ padding: 'max(52px, calc(env(safe-area-inset-top) + 16px)) 16px 16px' }}>
+    <div className="page-bottom" style={{ background: '#FAFAF7' }}>
+      <div style={{ padding: 'max(52px, calc(env(safe-area-inset-top) + 16px)) 16px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
+        <button onClick={() => router.back()} style={{ width: 36, height: 36, borderRadius: '50%', border: 'none', background: '#fff', cursor: 'pointer', fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}>←</button>
         <h1 style={{ fontSize: 24, fontWeight: 800, color: '#1A1D1A', margin: 0 }}>Settings</h1>
       </div>
 
@@ -101,6 +103,7 @@ export default function SettingsPage() {
           </button>
         </div>
       </div>
+      <BottomNav />
     </div>
   )
 }

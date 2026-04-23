@@ -55,7 +55,7 @@ export function GoalsForm({ currentWeight, goalWeight, weeklyGoal: initialWeekly
       }),
     })
     setSaved(true)
-    setTimeout(() => { setSaved(false); router.refresh() }, 1500)
+    setTimeout(() => router.push('/'), 1000)
   }
 
   return (

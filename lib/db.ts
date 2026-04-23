@@ -116,6 +116,40 @@ export async function migrate() {
   await sql`CREATE INDEX IF NOT EXISTS idx_weight_logs_logged_at ON weight_logs(logged_at)`
 }
 
+// ─── Combined Queries (fewer roundtrips) ─────────────────────────────────────
+
+export async function getHomeData(googleId: string) {
+  const result = await sql<User & { today_meals: Meal[] }>`
+    SELECT u.*,
+      COALESCE(
+        json_agg(
+          json_build_object(
+            'id', m.id, 'meal_type', m.meal_type, 'eaten_at', m.eaten_at,
+            'total_kcal', m.total_kcal, 'image_url', m.image_url,
+            'food_items', (
+              SELECT COALESCE(json_agg(
+                json_build_object('id', fi.id, 'name', fi.name, 'amount_g', fi.amount_g,
+                  'kcal', fi.kcal, 'protein_g', fi.protein_g, 'carbs_g', fi.carbs_g, 'fat_g', fi.fat_g)
+              ), '[]'::json)
+              FROM food_items fi WHERE fi.meal_id = m.id
+            )
+          )
+        ) FILTER (WHERE m.id IS NOT NULL),
+        '[]'::json
+      ) AS today_meals
+    FROM users u
+    LEFT JOIN meals m ON m.user_id = u.id AND m.eaten_at::date = CURRENT_DATE
+    WHERE u.google_id = ${googleId}
+    GROUP BY u.id
+  `
+  const row = result.rows[0]
+  if (!row) return null
+  return {
+    user: row as User,
+    meals: (row.today_meals as unknown as Meal[]) ?? [],
+  }
+}
+
 // ─── User Queries ─────────────────────────────────────────────────────────────
 
 export async function upsertUser(data: {
