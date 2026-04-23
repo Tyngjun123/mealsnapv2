@@ -56,7 +56,10 @@ export default function BarcodePage() {
     setError('')
     try {
       const res = await fetch(`/api/barcode?code=${encodeURIComponent(barcode.trim())}`)
-      if (res.status === 404) { setError('Product not found. Try another barcode.'); return }
+      if (res.status === 404) {
+        setError('not_found')
+        return
+      }
       if (!res.ok) throw new Error()
       const data = await res.json()
       sessionStorage.setItem('analyzeResult', JSON.stringify({
@@ -66,7 +69,7 @@ export default function BarcodePage() {
       }))
       router.push('/result')
     } catch {
-      setError('Could not find product. Try again.')
+      setError('Could not reach the product database. Please check your connection.')
     } finally {
       setLoading(false)
     }
@@ -145,11 +148,25 @@ export default function BarcodePage() {
           </button>
         </div>
 
-        {error && (
+        {error === 'not_found' ? (
+          <div style={{ marginTop: 12, padding: '16px', borderRadius: 14, background: '#FFF3E0', border: '1px solid #FFCC80' }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: '#E65100', marginBottom: 6 }}>Product not found</div>
+            <div style={{ fontSize: 13, color: '#BF360C', marginBottom: 12 }}>
+              This barcode isn't in our database. You can describe the food manually instead.
+            </div>
+            <button onClick={() => router.push('/manual')} style={{
+              width: '100%', padding: '12px', borderRadius: 12, border: 'none',
+              background: '#FF7043', color: '#fff', fontWeight: 700, fontSize: 14,
+              fontFamily: 'inherit', cursor: 'pointer',
+            }}>
+              Enter Food Manually →
+            </button>
+          </div>
+        ) : error ? (
           <div style={{ marginTop: 12, padding: '12px 16px', borderRadius: 12, background: '#FFEBEE', color: '#C62828', fontSize: 13, fontWeight: 500 }}>
             {error}
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   )

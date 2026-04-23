@@ -38,9 +38,17 @@ function getLast7Days() {
 
 interface Props { meals: MealEntry[] }
 
+const MEAL_TYPES = ['all', 'breakfast', 'lunch', 'dinner', 'snack'] as const
+type FilterType = typeof MEAL_TYPES[number]
+
+const FILTER_COLORS: Record<string, string> = {
+  breakfast: '#F9A825', lunch: '#4CAF50', dinner: '#1565C0', snack: '#FF7043',
+}
+
 export function HistoryView({ meals: initialMeals }: Props) {
   const [meals, setMeals]               = useState(initialMeals)
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
+  const [filter, setFilter]             = useState<FilterType>('all')
 
   async function handleDelete(id: string) {
     await fetch(`/api/meals?id=${id}`, { method: 'DELETE' })
@@ -58,9 +66,9 @@ export function HistoryView({ meals: initialMeals }: Props) {
   }, {})
 
   // Filter meals for display
-  const displayMeals = selectedDate
-    ? meals.filter(m => new Date(m.eatenAt).toDateString() === selectedDate)
-    : meals
+  const displayMeals = meals
+    .filter(m => !selectedDate || new Date(m.eatenAt).toDateString() === selectedDate)
+    .filter(m => filter === 'all' || m.mealType === filter)
 
   // Group for display
   const grouped = displayMeals.reduce<Record<string, MealEntry[]>>((acc, m) => {
@@ -78,6 +86,22 @@ export function HistoryView({ meals: initialMeals }: Props) {
       <div style={{ padding: 'max(52px, calc(env(safe-area-inset-top) + 16px)) 20px 16px' }}>
         <h1 style={{ fontSize: 24, fontWeight: 800, color: '#1A1D1A', margin: 0, letterSpacing: -0.5 }}>History</h1>
         <p style={{ fontSize: 13, color: '#6B7168', margin: '4px 0 0' }}>Last 30 days</p>
+      </div>
+
+      {/* Meal type filter */}
+      <div style={{ padding: '0 16px 12px', display: 'flex', gap: 6, overflowX: 'auto', scrollbarWidth: 'none' }}>
+        {MEAL_TYPES.map(t => (
+          <button key={t} onClick={() => setFilter(t)} style={{
+            padding: '7px 14px', borderRadius: 999, border: 'none', cursor: 'pointer',
+            background: filter === t ? (t === 'all' ? '#1A1D1A' : FILTER_COLORS[t]) : '#F5F5F0',
+            color: filter === t ? '#fff' : '#6B7168',
+            fontSize: 12, fontWeight: 700, fontFamily: 'inherit', whiteSpace: 'nowrap',
+            boxShadow: filter === t ? '0 2px 8px rgba(0,0,0,0.15)' : 'none',
+            transition: 'all 0.15s', flexShrink: 0,
+          }}>
+            {t.charAt(0).toUpperCase() + t.slice(1)}
+          </button>
+        ))}
       </div>
 
       {/* 7-day Calendar Strip */}
