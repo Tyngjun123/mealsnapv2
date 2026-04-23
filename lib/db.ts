@@ -114,6 +114,14 @@ export async function migrate() {
   `
   await sql`CREATE INDEX IF NOT EXISTS idx_weight_logs_user_id ON weight_logs(user_id)`
   await sql`CREATE INDEX IF NOT EXISTS idx_weight_logs_logged_at ON weight_logs(logged_at)`
+
+  await sql`
+    CREATE TABLE IF NOT EXISTS push_subscriptions (
+      user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+      subscription TEXT NOT NULL,
+      updated_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `
 }
 
 // ─── Combined Queries (fewer roundtrips) ─────────────────────────────────────
@@ -236,6 +244,28 @@ export async function addWeightLog(userId: string, weightKg: number, notes?: str
     RETURNING *
   `
   return result.rows[0]
+}
+
+export async function savePushSubscription(userId: string, subscription: object) {
+  await sql`
+    INSERT INTO push_subscriptions (user_id, subscription)
+    VALUES (${userId}, ${JSON.stringify(subscription)})
+    ON CONFLICT (user_id) DO UPDATE SET subscription = EXCLUDED.subscription, updated_at = NOW()
+  `
+}
+
+export async function getPushSubscriptions(): Promise<{ user_id: string; subscription: string }[]> {
+  const result = await sql<{ user_id: string; subscription: string }>`
+    SELECT ps.user_id, ps.subscription
+    FROM push_subscriptions ps
+    JOIN users u ON u.id = ps.user_id
+    WHERE u.google_id NOT LIKE 'guest_%'
+  `
+  return result.rows
+}
+
+export async function deletePushSubscription(userId: string) {
+  await sql`DELETE FROM push_subscriptions WHERE user_id = ${userId}`
 }
 
 export async function getWeightLogs(userId: string, limit = 60): Promise<WeightLog[]> {

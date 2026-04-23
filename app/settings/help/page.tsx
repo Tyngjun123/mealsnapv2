@@ -70,10 +70,24 @@ export default function HelpPage() {
           ))}
         </div>
 
-        <div className="card" style={{ padding: 16, textAlign: 'center' }}>
-          <div style={{ fontSize: 20, marginBottom: 8 }}>📧</div>
-          <div style={{ fontSize: 14, fontWeight: 700, color: '#1A1D1A', marginBottom: 4 }}>Still need help?</div>
-          <div style={{ fontSize: 13, color: '#6B7168' }}>Contact us at support@mealsnap.app</div>
+        <div className="card" style={{ padding: 16 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#6B7168', textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 12 }}>Contact Us</div>
+          <a href="https://xhslink.com/m/5aO261vX2CN" target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 0', textDecoration: 'none', borderBottom: '1px solid #F5F5F0' }}>
+            <span style={{ fontSize: 26, width: 36, textAlign: 'center' }}>📕</span>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#1A1D1A' }}>RedNote (小红书)</div>
+              <div style={{ fontSize: 12, color: '#6B7168', marginTop: 2 }}>Follow us for tips & updates</div>
+            </div>
+            <span style={{ marginLeft: 'auto', color: '#C0C0C0', fontSize: 16 }}>›</span>
+          </a>
+          <a href="mailto:support@mealsnap.app" style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 0', textDecoration: 'none' }}>
+            <span style={{ fontSize: 26, width: 36, textAlign: 'center' }}>📧</span>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#1A1D1A' }}>Email Support</div>
+              <div style={{ fontSize: 12, color: '#6B7168', marginTop: 2 }}>support@mealsnap.app</div>
+            </div>
+            <span style={{ marginLeft: 'auto', color: '#C0C0C0', fontSize: 16 }}>›</span>
+          </a>
         </div>
       </div>
     </div>

@@ -38,7 +38,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <Providers>
           <SplashScreen />
-          <main className="max-w-md mx-auto min-h-screen relative brand-bg">
+          <main className="max-w-md mx-auto relative brand-bg" style={{ height: '100dvh', overflowY: 'auto', overscrollBehavior: 'none' }}>
             {children}
           </main>
         </Providers>

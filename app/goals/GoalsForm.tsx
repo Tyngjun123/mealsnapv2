@@ -19,6 +19,22 @@ const WEEKLY_GOALS = [
   { key: 'gain_2',   label: 'Gain 0.5 kg/week',   kcal: 500 },
 ]
 
+const WEEKLY_KG: Record<string, number> = {
+  lose_1: -0.5, lose_2: -0.25, maintain: 0, gain_1: 0.25, gain_2: 0.5,
+}
+
+function bmi(weightKg: number, heightCm: number) {
+  const h = heightCm / 100
+  return weightKg / (h * h)
+}
+
+function bmiLabel(b: number) {
+  if (b < 18.5) return { label: 'Underweight', color: '#1565C0' }
+  if (b < 25)   return { label: 'Normal',       color: '#4CAF50' }
+  if (b < 30)   return { label: 'Overweight',   color: '#FF7043' }
+  return               { label: 'Obese',         color: '#C62828' }
+}
+
 interface Props {
   currentWeight: number | null
   goalWeight: number | null
@@ -26,9 +42,10 @@ interface Props {
   activity: string
   sex: string
   dailyGoalKcal: number
+  heightCm: number | null
 }
 
-export function GoalsForm({ currentWeight, goalWeight, weeklyGoal: initialWeekly, activity: initialActivity, sex: initialSex, dailyGoalKcal }: Props) {
+export function GoalsForm({ currentWeight, goalWeight, weeklyGoal: initialWeekly, activity: initialActivity, sex: initialSex, dailyGoalKcal, heightCm }: Props) {
   const router = useRouter()
   const [curWeight, setCurWeight]   = useState(currentWeight?.toString() ?? '')
   const [goalWt, setGoalWt]         = useState(goalWeight?.toString() ?? '')
@@ -148,7 +165,62 @@ export function GoalsForm({ currentWeight, goalWeight, weeklyGoal: initialWeekly
           )}
         </div>
 
-        {/* Daily calorie target (calculated) */}
+        {/* 30-day projection */}
+        {curWeight && goalWt && heightCm && parseFloat(curWeight) > 0 && parseFloat(goalWt) > 0 && (
+          (() => {
+            const cur = parseFloat(curWeight)
+            const goal = parseFloat(goalWt)
+            const weeklyChange = WEEKLY_KG[weekly] ?? 0
+            const rows = [7, 14, 21, 30].map(days => {
+              const weeks = days / 7
+              const projected = cur + weeklyChange * weeks
+              const clamped = weeklyChange < 0 ? Math.max(projected, goal) : Math.min(projected, goal)
+              const b = bmi(clamped, heightCm)
+              const { label, color } = bmiLabel(b)
+              const reached = weeklyChange < 0 ? projected <= goal : weeklyChange > 0 ? projected >= goal : true
+              return { days, weight: clamped, bmi: b, label, color, reached }
+            })
+            const daysToGoal = weeklyChange !== 0
+              ? Math.ceil(Math.abs(goal - cur) / Math.abs(weeklyChange) * 7)
+              : null
+
+            return (
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#6B7168', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 8 }}>
+                  30-Day Weight Projection
+                </div>
+                <div className="card" style={{ padding: '0 16px', marginBottom: 8 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '60px 1fr 70px 80px', gap: 8, padding: '10px 0', borderBottom: '1px solid #F0F0F0' }}>
+                    {['Day', 'Weight', 'BMI', 'Status'].map(h => (
+                      <div key={h} style={{ fontSize: 10, fontWeight: 700, color: '#6B7168', textTransform: 'uppercase' }}>{h}</div>
+                    ))}
+                  </div>
+                  {rows.map((r, i) => (
+                    <div key={r.days} style={{ display: 'grid', gridTemplateColumns: '60px 1fr 70px 80px', gap: 8, padding: '13px 0', borderBottom: i < rows.length - 1 ? '1px solid #F5F5F0' : 'none', alignItems: 'center' }}>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: '#1A1D1A' }}>Day {r.days}</span>
+                      <span style={{ fontSize: 14, fontWeight: 800, color: r.reached ? '#4CAF50' : '#1A1D1A' }}>
+                        {r.weight.toFixed(1)} kg {r.reached && weeklyChange !== 0 ? '🎯' : ''}
+                      </span>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: '#6B7168' }}>{r.bmi.toFixed(1)}</span>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: r.color, background: r.color + '18', padding: '3px 6px', borderRadius: 6 }}>{r.label}</span>
+                    </div>
+                  ))}
+                </div>
+                {daysToGoal !== null && (
+                  <div style={{ padding: '12px 14px', borderRadius: 12, background: '#E8F5E9', border: '1px solid #C8E6C9' }}>
+                    <span style={{ fontSize: 13, color: '#2E7D32', fontWeight: 600 }}>
+                      {daysToGoal <= 30
+                        ? `At this rate you reach ${goal} kg in ~${daysToGoal} days`
+                        : `At this rate you reach ${goal} kg in ~${Math.round(daysToGoal / 7)} weeks`}
+                    </span>
+                  </div>
+                )}
+              </div>
+            )
+          })()
+        )}
+
+        {/* Daily calorie target */}
         <div style={{ fontSize: 11, fontWeight: 700, color: '#6B7168', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 8 }}>Current Calorie Goal</div>
         <div className="card" style={{ padding: '16px', marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontSize: 15, color: '#1A1D1A' }}>Daily Target</span>

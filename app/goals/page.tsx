@@ -20,6 +20,7 @@ export default async function GoalsPage() {
       activity={user.activity_level ?? 'moderate'}
       sex={user.sex ?? 'male'}
       dailyGoalKcal={user.daily_goal_kcal}
+      heightCm={user.height_cm}
     />
   )
 }

@@ -1,5 +1,5 @@
 'use client'
-import { useRef, useState, useCallback } from 'react'
+import { useRef, useState, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
 export default function CameraPage() {
@@ -7,6 +7,11 @@ export default function CameraPage() {
   const fileRef = useRef<HTMLInputElement>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    const t = setTimeout(() => fileRef.current?.click(), 120)
+    return () => clearTimeout(t)
+  }, [])
 
   const handleFile = useCallback((file: File) => {
     const url = URL.createObjectURL(file)
