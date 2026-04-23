@@ -11,7 +11,10 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const isExport = searchParams.get('export') === '1'
 
-  const meals = await getMealsByDateRange(googleId, isExport ? 365 : 30)
+  const user = await getUserByGoogleId(googleId)
+  if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
+
+  const meals = await getMealsByDateRange(user.id, isExport ? 365 : 30)
 
   if (isExport) {
     const json = JSON.stringify(meals, null, 2)
@@ -62,6 +65,9 @@ export async function DELETE(req: NextRequest) {
 
   if (!mealId) return NextResponse.json({ error: 'Missing meal id' }, { status: 400 })
 
-  await deleteMeal(mealId, googleId)
+  const deleteUser = await getUserByGoogleId(googleId)
+  if (!deleteUser) return NextResponse.json({ error: 'User not found' }, { status: 404 })
+
+  await deleteMeal(mealId, deleteUser.id)
   return NextResponse.json({ ok: true })
 }

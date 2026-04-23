@@ -9,7 +9,9 @@ export default async function HistoryPage() {
   if (!session?.user) redirect('/login')
 
   const googleId = (session.user as { id?: string }).id ?? ''
-  const meals = await getMealsByDateRange(googleId, 30).catch(() => [])
+  const user = await getUserByGoogleId(googleId)
+  if (!user) redirect('/login')
+  const meals = await getMealsByDateRange(user.id, 30).catch(() => [])
 
   return (
     <HistoryView meals={meals.map(m => ({

@@ -9,11 +9,9 @@ export default async function HomePage() {
   if (!session?.user) redirect('/login')
 
   const googleId = (session.user as { id?: string }).id ?? ''
-  const [user, meals] = await Promise.all([
-    getUserByGoogleId(googleId),
-    getTodayMeals(googleId).catch(() => []),
-  ])
+  const user = await getUserByGoogleId(googleId)
   if (!user) redirect('/login')
+  const meals = await getTodayMeals(user.id).catch(() => [])
 
   const eaten   = meals.reduce((s, m) => s + m.total_kcal, 0)
   const protein = meals.reduce((s, m) => s + (m.food_items?.reduce((a, f) => a + f.protein_g, 0) ?? 0), 0)
