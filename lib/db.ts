@@ -260,7 +260,7 @@ export async function getMealsByDateRange(userId: string, days: number): Promise
     FROM meals m
     LEFT JOIN food_items fi ON fi.meal_id = m.id
     WHERE m.user_id = ${userId}
-      AND m.eaten_at >= NOW() - INTERVAL '${days} days'
+      AND m.eaten_at >= NOW() - (${days} * INTERVAL '1 day')
     GROUP BY m.id
     ORDER BY m.eaten_at DESC
   `
@@ -282,7 +282,7 @@ export async function getDailyTotals(userId: string, days: number) {
     FROM meals m
     LEFT JOIN food_items fi ON fi.meal_id = m.id
     WHERE m.user_id = ${userId}
-      AND m.eaten_at >= NOW() - INTERVAL '${days} days'
+      AND m.eaten_at >= NOW() - (${days} * INTERVAL '1 day')
     GROUP BY m.eaten_at::date
     ORDER BY date DESC
   `

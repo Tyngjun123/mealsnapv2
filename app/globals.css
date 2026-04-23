@@ -67,4 +67,14 @@
   .meal-icon-lunch     { background: #E8F5E9; }
   .meal-icon-dinner    { background: #E3F2FD; }
   .meal-icon-snack     { background: #FBE9E7; }
+
+  @keyframes shimmer {
+    0%   { background-position: -400px 0; }
+    100% { background-position: 400px 0; }
+  }
+  .skeleton {
+    background: linear-gradient(90deg, #E8E8E8 25%, #F4F4F4 50%, #E8E8E8 75%);
+    background-size: 800px 100%;
+    animation: shimmer 1.4s infinite linear;
+  }
 }

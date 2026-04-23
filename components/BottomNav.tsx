@@ -1,6 +1,7 @@
 'use client'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
+import { useState, useTransition } from 'react'
 
 const tabs = [
   {
@@ -53,6 +54,24 @@ const tabs = [
 
 export function BottomNav() {
   const pathname = usePathname()
+  const router = useRouter()
+  const [pending, startTransition] = useTransition()
+  const [optimisticPath, setOptimisticPath] = useState<string | null>(null)
+
+  const activePath = optimisticPath ?? pathname
+
+  function handleNav(href: string) {
+    if (href === pathname) return
+    setOptimisticPath(href)
+    startTransition(() => {
+      router.push(href)
+    })
+  }
+
+  // Clear optimistic path once the real pathname catches up
+  if (optimisticPath && pathname === optimisticPath && !pending) {
+    setOptimisticPath(null)
+  }
 
   return (
     <nav style={{
@@ -68,11 +87,13 @@ export function BottomNav() {
       zIndex: 50,
     }}>
       {tabs.map((tab) => {
-        const active = pathname === tab.href
+        const active = activePath === tab.href
         return (
-          <Link key={tab.href} href={tab.href} prefetch={false} style={{
+          <button key={tab.href} onClick={() => handleNav(tab.href)} style={{
             flex: 1, display: 'flex', flexDirection: 'column',
-            alignItems: 'center', gap: 4, textDecoration: 'none',
+            alignItems: 'center', gap: 4,
+            background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0',
+            WebkitTapHighlightColor: 'transparent',
           }}>
             {tab.icon(active)}
             <span style={{
@@ -82,7 +103,7 @@ export function BottomNav() {
             }}>
               {tab.label}
             </span>
-          </Link>
+          </button>
         )
       })}
     </nav>
