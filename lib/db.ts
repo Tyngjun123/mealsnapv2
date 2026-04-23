@@ -18,6 +18,9 @@ export interface User {
   activity_level: string | null
   weekly_goal: string | null
   sex: string | null
+  protein_target_g: number | null
+  carbs_target_g: number | null
+  fat_target_g: number | null
 }
 
 export interface WeightLog {
@@ -144,6 +147,10 @@ export async function migrate() {
   `
   await sql`CREATE INDEX IF NOT EXISTS idx_workouts_user_id ON workouts(user_id)`
   await sql`CREATE INDEX IF NOT EXISTS idx_workouts_logged_at ON workouts(logged_at)`
+
+  await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS protein_target_g INTEGER`
+  await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS carbs_target_g INTEGER`
+  await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS fat_target_g INTEGER`
 }
 
 // ─── Combined Queries (fewer roundtrips) ─────────────────────────────────────
@@ -213,13 +220,10 @@ export async function updateUser(googleId: string, data: Partial<{
   weight_kg: number
   age: number
   name: string
+  protein_target_g: number
+  carbs_target_g: number
+  fat_target_g: number
 }>) {
-  const fields = Object.entries(data)
-    .filter(([, v]) => v !== undefined)
-    .map(([k, v]) => `${k} = ${v}`)
-    .join(', ')
-  if (!fields) return
-  // Use parameterized approach per field
   if (data.daily_goal_kcal !== undefined) {
     await sql`UPDATE users SET daily_goal_kcal = ${data.daily_goal_kcal} WHERE google_id = ${googleId}`
   }
@@ -234,6 +238,15 @@ export async function updateUser(googleId: string, data: Partial<{
   }
   if (data.name !== undefined) {
     await sql`UPDATE users SET name = ${data.name} WHERE google_id = ${googleId}`
+  }
+  if (data.protein_target_g !== undefined) {
+    await sql`UPDATE users SET protein_target_g = ${data.protein_target_g} WHERE google_id = ${googleId}`
+  }
+  if (data.carbs_target_g !== undefined) {
+    await sql`UPDATE users SET carbs_target_g = ${data.carbs_target_g} WHERE google_id = ${googleId}`
+  }
+  if (data.fat_target_g !== undefined) {
+    await sql`UPDATE users SET fat_target_g = ${data.fat_target_g} WHERE google_id = ${googleId}`
   }
 }
 
@@ -311,6 +324,36 @@ export async function getTodayWorkouts(userId: string): Promise<Workout[]> {
 
 export async function deleteWorkout(workoutId: string, userId: string) {
   await sql`DELETE FROM workouts WHERE id = ${workoutId} AND user_id = ${userId}`
+}
+
+export async function getStreak(userId: string): Promise<number> {
+  const result = await sql<{ day: string }>`
+    SELECT DISTINCT eaten_at::date AS day
+    FROM meals WHERE user_id = ${userId}
+      AND eaten_at::date >= CURRENT_DATE - 365
+    ORDER BY day DESC
+  `
+  const days = result.rows.map(r => r.day.slice(0, 10))
+  if (days.length === 0) return 0
+
+  // Build a Set for O(1) lookup
+  const set = new Set(days)
+
+  // Use server UTC date as anchor; allow grace if today not yet logged
+  const todayUTC = new Date().toISOString().slice(0, 10)
+  const anchor = set.has(todayUTC) ? todayUTC : (() => {
+    const y = new Date(); y.setUTCDate(y.getUTCDate() - 1)
+    return y.toISOString().slice(0, 10)
+  })()
+  if (!set.has(anchor)) return 0
+
+  let streak = 0
+  const cursor = new Date(anchor)
+  while (set.has(cursor.toISOString().slice(0, 10))) {
+    streak++
+    cursor.setUTCDate(cursor.getUTCDate() - 1)
+  }
+  return streak
 }
 
 export async function getWeightLogs(userId: string, limit = 60): Promise<WeightLog[]> {

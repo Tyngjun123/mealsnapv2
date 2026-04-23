@@ -2,6 +2,15 @@
 import { useRef, useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 
+function autoMealType() {
+  const h = new Date().getHours()
+  if (h >= 5  && h < 11) return 'breakfast'
+  if (h >= 11 && h < 15) return 'lunch'
+  if (h >= 15 && h < 18) return 'snack'
+  if (h >= 18 && h < 22) return 'dinner'
+  return 'snack'
+}
+
 type Mode = 'starting' | 'live' | 'preview' | 'denied' | 'fallback'
 
 export default function CameraPage() {
@@ -106,7 +115,7 @@ export default function CameraPage() {
     setLoading(true)
     const formData = new FormData()
     formData.append('image', capturedBlob, 'photo.jpg')
-    formData.append('mealType', 'dinner')
+    formData.append('mealType', autoMealType())
     try {
       const res = await fetch('/api/analyze', { method: 'POST', body: formData })
       if (res.status === 429) {

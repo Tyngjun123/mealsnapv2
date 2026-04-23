@@ -3,6 +3,15 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { DetectedFood } from '@/lib/claude'
 
+function autoMealType() {
+  const h = new Date().getHours()
+  if (h >= 5  && h < 11) return 'breakfast'
+  if (h >= 11 && h < 15) return 'lunch'
+  if (h >= 15 && h < 18) return 'snack'
+  if (h >= 18 && h < 22) return 'dinner'
+  return 'snack'
+}
+
 const SUGGESTIONS = ['1 cup of rice', 'grilled chicken 150g', 'banana', 'Starbucks latte', '2 eggs scrambled']
 
 export default function ManualPage() {
@@ -26,7 +35,7 @@ export default function ManualPage() {
       sessionStorage.setItem('analyzeResult', JSON.stringify({
         foods: data.foods as DetectedFood[],
         imageUrl: null,
-        mealType: 'snack',
+        mealType: autoMealType(),
       }))
       router.push('/result')
     } catch {

@@ -3,6 +3,17 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { BottomNav } from '@/components/BottomNav'
 
+const ACTIVITY_MULT: Record<string, number> = {
+  sedentary: 1.2, light: 1.375, moderate: 1.55, active: 1.725, very_active: 1.9,
+}
+
+function calcTDEE(sex: string, weightKg: number, heightCm: number, age: number, activity: string): number {
+  const bmr = sex === 'female'
+    ? 447.593 + (9.247 * weightKg) + (3.098 * heightCm) - (4.330 * age)
+    : 88.362 + (13.397 * weightKg) + (4.799 * heightCm) - (5.677 * age)
+  return Math.round(bmr * (ACTIVITY_MULT[activity] ?? 1.55))
+}
+
 const ACTIVITY_LEVELS = [
   { key: 'sedentary',   label: 'Sedentary',          desc: 'Little or no exercise' },
   { key: 'light',       label: 'Lightly Active',      desc: '1–3 days/week' },
@@ -43,33 +54,51 @@ interface Props {
   sex: string
   dailyGoalKcal: number
   heightCm: number | null
+  age: number | null
 }
 
-export function GoalsForm({ currentWeight, goalWeight, weeklyGoal: initialWeekly, activity: initialActivity, sex: initialSex, dailyGoalKcal, heightCm }: Props) {
+export function GoalsForm({ currentWeight, goalWeight, weeklyGoal: initialWeekly, activity: initialActivity, sex: initialSex, dailyGoalKcal, heightCm, age: initialAge }: Props) {
   const router = useRouter()
   const [curWeight, setCurWeight]   = useState(currentWeight?.toString() ?? '')
   const [goalWt, setGoalWt]         = useState(goalWeight?.toString() ?? '')
   const [weekly, setWeekly]         = useState(initialWeekly || 'maintain')
   const [activity, setActivity]     = useState(initialActivity || 'moderate')
   const [sex, setSex]               = useState(initialSex || 'male')
+  const [age, setAge]               = useState(initialAge?.toString() ?? '')
   const [showActivity, setShowActivity] = useState(false)
   const [showWeekly, setShowWeekly]     = useState(false)
   const [saved, setSaved]               = useState(false)
+
+  const ageNum = parseInt(age) || 0
+  const weightNum = parseFloat(curWeight) || 0
+  const tdee = heightCm && weightNum && ageNum
+    ? calcTDEE(sex, weightNum, heightCm, ageNum, activity)
+    : null
+  const weeklyOffset = WEEKLY_GOALS.find(w => w.key === weekly)?.kcal ?? 0
+  const suggestedKcal = tdee ? Math.max(1200, tdee + weeklyOffset) : null
 
   const actLabel  = ACTIVITY_LEVELS.find(a => a.key === activity)?.label ?? ''
   const weekLabel = WEEKLY_GOALS.find(w => w.key === weekly)?.label ?? ''
 
   async function handleSave() {
+    const body: Record<string, unknown> = {
+      weight_kg:      curWeight ? parseFloat(curWeight) : null,
+      goal_weight_kg: goalWt    ? parseFloat(goalWt)    : null,
+      activity_level: activity,
+      weekly_goal:    weekly,
+      sex,
+      age: ageNum || null,
+    }
+    if (suggestedKcal) {
+      body.daily_goal_kcal  = suggestedKcal
+      body.protein_target_g = Math.round(suggestedKcal * 0.30 / 4)
+      body.carbs_target_g   = Math.round(suggestedKcal * 0.40 / 4)
+      body.fat_target_g     = Math.round(suggestedKcal * 0.30 / 9)
+    }
     await fetch('/api/user', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        weight_kg:      curWeight  ? parseFloat(curWeight)  : null,
-        goal_weight_kg: goalWt     ? parseFloat(goalWt)     : null,
-        activity_level: activity,
-        weekly_goal:    weekly,
-        sex,
-      }),
+      body: JSON.stringify(body),
     })
     setSaved(true)
     setTimeout(() => router.push('/'), 1000)
@@ -98,21 +127,22 @@ export function GoalsForm({ currentWeight, goalWeight, weeklyGoal: initialWeekly
           ))}
         </div>
 
-        {/* Weight */}
-        <div style={{ fontSize: 11, fontWeight: 700, color: '#6B7168', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 8 }}>Weight</div>
+        {/* Weight + Age */}
+        <div style={{ fontSize: 11, fontWeight: 700, color: '#6B7168', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 8 }}>Body Stats</div>
         <div className="card" style={{ padding: '0 16px', marginBottom: 16 }}>
           {[
-            { label: 'Current Weight', value: curWeight, setter: setCurWeight },
-            { label: 'Goal Weight',    value: goalWt,    setter: setGoalWt    },
+            { label: 'Current Weight', value: curWeight, setter: setCurWeight, unit: 'kg' },
+            { label: 'Goal Weight',    value: goalWt,    setter: setGoalWt,    unit: 'kg' },
+            { label: 'Age',            value: age,       setter: setAge,       unit: 'yrs' },
           ].map((row, i) => (
-            <div key={row.label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 0', borderBottom: i === 0 ? '1px solid #F5F5F0' : 'none' }}>
+            <div key={row.label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 0', borderBottom: i < 2 ? '1px solid #F5F5F0' : 'none' }}>
               <span style={{ fontSize: 15, color: '#1A1D1A' }}>{row.label}</span>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <input type="number" value={row.value} onChange={e => row.setter(e.target.value)}
                   placeholder="–"
                   style={{ width: 60, border: 'none', textAlign: 'right', fontSize: 15, fontWeight: 700, color: '#4CAF50', background: 'none', fontFamily: 'inherit', outline: 'none' }}
                 />
-                <span style={{ fontSize: 13, color: '#6B7168' }}>kg</span>
+                <span style={{ fontSize: 13, color: '#6B7168' }}>{row.unit}</span>
               </div>
             </div>
           ))}
@@ -220,12 +250,38 @@ export function GoalsForm({ currentWeight, goalWeight, weeklyGoal: initialWeekly
           })()
         )}
 
-        {/* Daily calorie target */}
-        <div style={{ fontSize: 11, fontWeight: 700, color: '#6B7168', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 8 }}>Current Calorie Goal</div>
-        <div className="card" style={{ padding: '16px', marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: 15, color: '#1A1D1A' }}>Daily Target</span>
-          <span style={{ fontSize: 22, fontWeight: 800, color: '#4CAF50' }}>{dailyGoalKcal.toLocaleString()} kcal</span>
-        </div>
+        {/* TDEE / calorie target */}
+        <div style={{ fontSize: 11, fontWeight: 700, color: '#6B7168', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 8 }}>Daily Calorie Target</div>
+        {suggestedKcal ? (
+          <div className="card" style={{ padding: '16px', marginBottom: 24 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+              <span style={{ fontSize: 14, color: '#6B7168' }}>TDEE (maintenance)</span>
+              <span style={{ fontSize: 15, fontWeight: 700, color: '#1A1D1A' }}>{tdee?.toLocaleString()} kcal</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, paddingBottom: 14, borderBottom: '1px solid #F0F0EC' }}>
+              <span style={{ fontSize: 14, color: '#6B7168' }}>Goal adjustment</span>
+              <span style={{ fontSize: 15, fontWeight: 700, color: weeklyOffset < 0 ? '#E53935' : weeklyOffset > 0 ? '#4CAF50' : '#9E9E9E' }}>
+                {weeklyOffset > 0 ? '+' : ''}{weeklyOffset} kcal
+              </span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: 15, fontWeight: 700, color: '#1A1D1A' }}>Your Daily Target</span>
+              <span style={{ fontSize: 24, fontWeight: 800, color: '#4CAF50' }}>{suggestedKcal.toLocaleString()} kcal</span>
+            </div>
+            <div style={{ marginTop: 12, display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#9E9E9E' }}>
+              <span>P: {Math.round(suggestedKcal * 0.30 / 4)}g</span>
+              <span>C: {Math.round(suggestedKcal * 0.40 / 4)}g</span>
+              <span>F: {Math.round(suggestedKcal * 0.30 / 9)}g</span>
+            </div>
+          </div>
+        ) : (
+          <div className="card" style={{ padding: '16px', marginBottom: 24 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: 14, color: '#6B7168' }}>Fill in weight & age above to auto-calculate</span>
+              <span style={{ fontSize: 20, fontWeight: 800, color: '#4CAF50' }}>{dailyGoalKcal.toLocaleString()} kcal</span>
+            </div>
+          </div>
+        )}
 
         <button className="btn-primary" style={{ width: '100%', marginBottom: 16 }} onClick={handleSave}>
           {saved ? '✓ Saved!' : 'Save Goals'}

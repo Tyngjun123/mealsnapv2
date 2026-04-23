@@ -12,7 +12,9 @@ interface Props {
   user: { name: string; avatarUrl: string; dailyGoal: number }
   eaten: number
   burned: number
+  streak: number
   macros: { protein: number; carbs: number; fat: number }
+  macroTargets: { protein: number | null; carbs: number | null; fat: number | null }
   meals: Array<{
     id: string
     mealType: string
@@ -30,7 +32,7 @@ function greeting() {
   return 'Good evening'
 }
 
-export function HomeDashboard({ user, eaten, burned, macros, meals: initialMeals }: Props) {
+export function HomeDashboard({ user, eaten, burned, streak, macros, macroTargets, meals: initialMeals }: Props) {
   const [meals, setMeals] = useState(initialMeals)
   const router = useRouter()
   const today = new Date().toLocaleDateString('en', { weekday: 'long', month: 'long', day: 'numeric' })
@@ -51,10 +53,18 @@ export function HomeDashboard({ user, eaten, burned, macros, meals: initialMeals
             {greeting()}, {user.name.split(' ')[0]} 👋
           </h1>
         </div>
-        {user.avatarUrl && (
-          <Image src={user.avatarUrl} alt="avatar" width={40} height={40}
-            style={{ borderRadius: '50%', border: '2px solid #E8F5E9' }} />
-        )}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
+          {streak > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#FFF8E1', border: '1px solid #FFE082', borderRadius: 20, padding: '4px 10px' }}>
+              <span style={{ fontSize: 14 }}>🔥</span>
+              <span style={{ fontSize: 12, fontWeight: 700, color: '#F57F17' }}>{streak} day{streak > 1 ? 's' : ''}</span>
+            </div>
+          )}
+          {user.avatarUrl && (
+            <Image src={user.avatarUrl} alt="avatar" width={40} height={40}
+              style={{ borderRadius: '50%', border: '2px solid #E8F5E9' }} />
+          )}
+        </div>
       </div>
 
       {/* Calorie Ring Card */}
@@ -85,7 +95,10 @@ export function HomeDashboard({ user, eaten, burned, macros, meals: initialMeals
             </div>
           </button>
         )}
-        <MacroBar protein={macros.protein} carbs={macros.carbs} fat={macros.fat} />
+        <MacroBar protein={macros.protein} carbs={macros.carbs} fat={macros.fat}
+          proteinTarget={macroTargets.protein ?? undefined}
+          carbsTarget={macroTargets.carbs ?? undefined}
+          fatTarget={macroTargets.fat ?? undefined} />
       </div>
 
       {/* Today's Meals */}

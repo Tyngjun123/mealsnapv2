@@ -1,7 +1,7 @@
 import { getServerSession } from 'next-auth'
 import { redirect } from 'next/navigation'
 import { authOptions } from '@/lib/auth'
-import { getHomeData, getTodayWorkouts, getUserByGoogleId } from '@/lib/db'
+import { getHomeData, getTodayWorkouts, getUserByGoogleId, getStreak } from '@/lib/db'
 import { HomeDashboard } from './HomeDashboard'
 
 export default async function HomePage() {
@@ -16,7 +16,15 @@ export default async function HomePage() {
   if (!data || !dbUser) redirect('/login')
   const { user, meals } = data
 
-  const workouts = await getTodayWorkouts(dbUser.id)
+  // Redirect new users (non-guest, no height/weight) to onboarding
+  if (!googleId.startsWith('guest_') && (!user.height_cm || !user.weight_kg)) {
+    redirect('/onboarding')
+  }
+
+  const [workouts, streak] = await Promise.all([
+    getTodayWorkouts(dbUser.id),
+    getStreak(dbUser.id),
+  ])
   const burned = workouts.reduce((s, w) => s + w.kcal_burned, 0)
 
   const eaten   = meals.reduce((s, m) => s + m.total_kcal, 0)
@@ -29,7 +37,9 @@ export default async function HomePage() {
       user={{ name: user.name, avatarUrl: user.avatar_url, dailyGoal: user.daily_goal_kcal }}
       eaten={Math.round(eaten)}
       burned={Math.round(burned)}
+      streak={streak}
       macros={{ protein: Math.round(protein), carbs: Math.round(carbs), fat: Math.round(fat) }}
+      macroTargets={{ protein: user.protein_target_g, carbs: user.carbs_target_g, fat: user.fat_target_g }}
       meals={meals.map(m => ({
         id: m.id,
         mealType: m.meal_type,

@@ -84,6 +84,19 @@ export default function ResultPage() {
     setFoods(prev => prev.map((f, i) => i === idx ? { ...f, [field]: value } : f))
   }
 
+  const deleteFood = (idx: number) => {
+    setFoods(prev => prev.filter((_, i) => i !== idx))
+    if (editingIdx === idx) setEditingIdx(null)
+  }
+
+  const addFood = () => {
+    setFoods(prev => [...prev, {
+      name: 'New item', calories_kcal: 0, estimated_amount_g: 100,
+      protein_g: 0, carbs_g: 0, fat_g: 0, confidence: 'low',
+    }])
+    setEditingIdx(foods.length)
+  }
+
   if (!data) return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#FAFAF7' }}>
       <div style={{ fontSize: 14, color: '#6B7168' }}>Loading...</div>
@@ -164,16 +177,29 @@ export default function ResultPage() {
 
       {/* Food items */}
       <div style={{ padding: '0 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: '#6B7168', marginBottom: 4 }}>
-          {foods.length} items detected — tap to edit
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#6B7168' }}>
+            {foods.length} item{foods.length !== 1 ? 's' : ''} — tap to edit
+          </div>
+          <button onClick={addFood} style={{
+            padding: '5px 12px', borderRadius: 999, border: 'none',
+            background: '#E8F5E9', color: '#2E7D32', fontWeight: 700,
+            fontSize: 12, cursor: 'pointer', fontFamily: 'inherit',
+          }}>+ Add item</button>
         </div>
         {foods.map((food, idx) => (
           <div key={idx} className="card" style={{ padding: '14px 16px' }}>
             {editingIdx === idx ? (
-              // Edit mode
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                <input value={food.name} onChange={e => updateFood(idx, 'name', e.target.value)}
-                  style={{ border: '1.5px solid #4CAF50', borderRadius: 10, padding: '8px 12px', fontSize: 14, fontFamily: 'inherit', outline: 'none' }}/>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <input value={food.name} onChange={e => updateFood(idx, 'name', e.target.value)}
+                    style={{ flex: 1, border: '1.5px solid #4CAF50', borderRadius: 10, padding: '8px 12px', fontSize: 14, fontFamily: 'inherit', outline: 'none' }}/>
+                  <button onClick={() => deleteFood(idx)} style={{
+                    width: 36, height: 36, borderRadius: 10, border: 'none',
+                    background: '#FFEBEE', color: '#E53935', cursor: 'pointer', fontSize: 16,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                  }}>🗑</button>
+                </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 8 }}>
                   {([
                     ['kcal', 'calories_kcal'],
@@ -193,39 +219,39 @@ export default function ResultPage() {
                   background: '#4CAF50', color: '#fff', border: 'none',
                   borderRadius: 10, padding: '8px', cursor: 'pointer',
                   fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
-                }}>Done</button>
+                }}>Done ✓</button>
               </div>
             ) : (
-              // View mode
-              <button onClick={() => setEditingIdx(idx)} style={{
-                width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'left',
-              }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <div>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: '#1A1D1A' }}>{food.name}</div>
-                    <div style={{ fontSize: 12, color: '#6B7168', marginTop: 3 }}>
-                      {food.estimated_amount_g}g · P:{food.protein_g}g C:{food.carbs_g}g F:{food.fat_g}g
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <button onClick={() => setEditingIdx(idx)} style={{
+                  flex: 1, background: 'none', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'left',
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div>
+                      <div style={{ fontSize: 15, fontWeight: 700, color: '#1A1D1A' }}>{food.name}</div>
+                      <div style={{ fontSize: 12, color: '#6B7168', marginTop: 3 }}>
+                        {food.estimated_amount_g}g · P:{food.protein_g}g C:{food.carbs_g}g F:{food.fat_g}g
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ fontSize: 16, fontWeight: 800, color: '#1A1D1A', fontVariantNumeric: 'tabular-nums' }}>
+                        {food.calories_kcal}
+                        <span style={{ fontSize: 10, fontWeight: 500, color: '#6B7168' }}> kcal</span>
+                      </span>
+                      <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 6,
+                        background: food.confidence === 'high' ? '#E8F5E9' : food.confidence === 'medium' ? '#FFF8E1' : '#FFEBEE',
+                        color: food.confidence === 'high' ? '#2E7D32' : food.confidence === 'medium' ? '#F57F17' : '#C62828',
+                      }}>{food.confidence}</span>
+                      <span style={{ fontSize: 11, color: '#9E9E9E' }}>✏️</span>
                     </div>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{
-                      fontSize: 16, fontWeight: 800, color: '#1A1D1A',
-                      fontVariantNumeric: 'tabular-nums',
-                    }}>
-                      {food.calories_kcal}
-                      <span style={{ fontSize: 10, fontWeight: 500, color: '#6B7168' }}> kcal</span>
-                    </span>
-                    <span style={{
-                      fontSize: 10, fontWeight: 700,
-                      padding: '2px 6px', borderRadius: 6,
-                      background: food.confidence === 'high' ? '#E8F5E9' : food.confidence === 'medium' ? '#FFF8E1' : '#FFEBEE',
-                      color: food.confidence === 'high' ? '#2E7D32' : food.confidence === 'medium' ? '#F57F17' : '#C62828',
-                    }}>
-                      {food.confidence}
-                    </span>
-                  </div>
-                </div>
-              </button>
+                </button>
+                <button onClick={() => deleteFood(idx)} style={{
+                  width: 28, height: 28, borderRadius: 8, border: 'none',
+                  background: '#FFEBEE', color: '#E53935', cursor: 'pointer',
+                  fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                }}>×</button>
+              </div>
             )}
           </div>
         ))}

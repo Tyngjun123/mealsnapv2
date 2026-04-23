@@ -22,11 +22,14 @@ export async function PATCH(req: NextRequest) {
   const body = await req.json()
 
   await updateUser(googleId, {
-    daily_goal_kcal: body.daily_goal_kcal,
-    height_cm: body.height_cm,
-    weight_kg: body.weight_kg,
-    age: body.age,
-    name: body.name,
+    daily_goal_kcal:  body.daily_goal_kcal,
+    height_cm:        body.height_cm,
+    weight_kg:        body.weight_kg,
+    age:              body.age,
+    name:             body.name,
+    protein_target_g: body.protein_target_g,
+    carbs_target_g:   body.carbs_target_g,
+    fat_target_g:     body.fat_target_g,
   })
 
   await updateUserGoals(googleId, {
