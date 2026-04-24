@@ -1,5 +1,5 @@
 'use client'
-import { BottomNav } from '@/components/BottomNav'
+
 
 interface DayTotal { date: string; fullDate: string; kcal: number; protein: number; carbs: number; fat: number }
 interface Props { goal: number; totals: DayTotal[] }
@@ -126,7 +126,7 @@ export function StatsView({ goal, totals }: Props) {
         </div>
       )}
 
-      <BottomNav/>
+
     </div>
   )
 }

@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { Providers } from './providers'
 import { SplashScreen } from '@/components/SplashScreen'
+import { NavWrapper } from './NavWrapper'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 
@@ -40,6 +41,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <SplashScreen />
           <main className="max-w-md mx-auto relative brand-bg" style={{ height: '100dvh', overflowY: 'auto', overscrollBehavior: 'none' }}>
             {children}
+            <NavWrapper />
           </main>
         </Providers>
       </body>

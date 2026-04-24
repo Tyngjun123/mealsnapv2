@@ -3,7 +3,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { BottomNav } from '@/components/BottomNav'
+
 import { CalorieRing } from '@/components/CalorieRing'
 import { MacroBar } from '@/components/MacroBar'
 import { MealCard } from '@/components/MealCard'
@@ -140,7 +140,7 @@ export function HomeDashboard({ user, eaten, burned, streak, macros, macroTarget
         </svg>
       </Link>
 
-      <BottomNav />
+
     </div>
   )
 }

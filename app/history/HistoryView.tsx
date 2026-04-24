@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { BottomNav } from '@/components/BottomNav'
+
 import { MealCard } from '@/components/MealCard'
 
 interface MealEntry {
@@ -185,7 +185,7 @@ export function HistoryView({ meals: initialMeals }: Props) {
         })}
       </div>
 
-      <BottomNav/>
+
     </div>
   )
 }

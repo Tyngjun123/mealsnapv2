@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { BottomNav } from '@/components/BottomNav'
+
 
 const ACTIVITY_MULT: Record<string, number> = {
   sedentary: 1.2, light: 1.375, moderate: 1.55, active: 1.725, very_active: 1.9,
@@ -288,7 +288,7 @@ export function GoalsForm({ currentWeight, goalWeight, weeklyGoal: initialWeekly
         </button>
       </div>
 
-      <BottomNav />
+
     </div>
   )
 }

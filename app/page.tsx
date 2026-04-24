@@ -1,7 +1,7 @@
 import { getServerSession } from 'next-auth'
 import { redirect } from 'next/navigation'
 import { authOptions } from '@/lib/auth'
-import { getHomeData, getTodayWorkouts, getUserByGoogleId, getStreak } from '@/lib/db'
+import { getHomeData } from '@/lib/db'
 import { HomeDashboard } from './HomeDashboard'
 
 export default async function HomePage() {
@@ -9,24 +9,16 @@ export default async function HomePage() {
   if (!session?.user) redirect('/login')
 
   const googleId = (session.user as { id?: string }).id ?? ''
-  const [data, dbUser] = await Promise.all([
-    getHomeData(googleId),
-    getUserByGoogleId(googleId),
-  ])
-  if (!data || !dbUser) redirect('/login')
-  const { user, meals } = data
+  const data = await getHomeData(googleId)
+  if (!data) redirect('/login')
 
-  // Redirect new users (non-guest, no height/weight) to onboarding
+  const { user, meals, workouts, streak } = data
+
   if (!googleId.startsWith('guest_') && (!user.height_cm || !user.weight_kg)) {
     redirect('/onboarding')
   }
 
-  const [workouts, streak] = await Promise.all([
-    getTodayWorkouts(dbUser.id),
-    getStreak(dbUser.id),
-  ])
-  const burned = workouts.reduce((s, w) => s + w.kcal_burned, 0)
-
+  const burned  = workouts.reduce((s, w) => s + w.kcal_burned, 0)
   const eaten   = meals.reduce((s, m) => s + m.total_kcal, 0)
   const protein = meals.reduce((s, m) => s + (m.food_items?.reduce((a, f) => a + f.protein_g, 0) ?? 0), 0)
   const carbs   = meals.reduce((s, m) => s + (m.food_items?.reduce((a, f) => a + f.carbs_g, 0) ?? 0), 0)

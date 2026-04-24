@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { BottomNav } from '@/components/BottomNav'
+
 
 const MEAL_COLORS: Record<string, string> = {
   breakfast: '#F9A825',
@@ -222,7 +222,7 @@ export default function NutritionPage() {
         </>
       )}
 
-      <BottomNav/>
+
     </div>
   )
 }

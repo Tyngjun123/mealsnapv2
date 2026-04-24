@@ -1,7 +1,7 @@
 'use client'
 import { useRouter } from 'next/navigation'
 import { signOut } from 'next-auth/react'
-import { BottomNav } from '@/components/BottomNav'
+
 
 const SECTIONS = [
   {
@@ -103,7 +103,7 @@ export default function SettingsPage() {
           </button>
         </div>
       </div>
-      <BottomNav />
+
     </div>
   )
 }

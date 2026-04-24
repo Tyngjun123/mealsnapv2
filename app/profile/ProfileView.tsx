@@ -1,7 +1,7 @@
 'use client'
 import { useRouter } from 'next/navigation'
 import { signOut } from 'next-auth/react'
-import { BottomNav } from '@/components/BottomNav'
+
 
 interface UserProfile {
   name: string; email: string; avatarUrl: string
@@ -201,7 +201,7 @@ export function ProfileView({ user, streak, stats }: Props) {
         </div>
       )}
 
-      <BottomNav />
+
     </div>
   )
 }

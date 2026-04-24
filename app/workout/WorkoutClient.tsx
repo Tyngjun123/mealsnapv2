@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { BottomNav } from '@/components/BottomNav'
+
 
 const EXERCISES = [
   { name: 'Walking',   icon: '🚶', met: 3.5 },
@@ -194,7 +194,7 @@ export function WorkoutClient({ weightKg, initialWorkouts }: Props) {
         </div>
       )}
 
-      <BottomNav />
+
     </div>
   )
 }

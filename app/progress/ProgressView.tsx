@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { BottomNav } from '@/components/BottomNav'
+
 
 interface WeightEntry { id: string; weight_kg: number; logged_at: string; notes: string | null }
 
@@ -184,7 +184,7 @@ export function ProgressView({ initialEntries, goalWeight }: Props) {
         </div>
       )}
 
-      <BottomNav/>
+
     </div>
   )
 }

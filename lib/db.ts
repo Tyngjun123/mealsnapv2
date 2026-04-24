@@ -156,7 +156,11 @@ export async function migrate() {
 // ─── Combined Queries (fewer roundtrips) ─────────────────────────────────────
 
 export async function getHomeData(googleId: string) {
-  const result = await sql<User & { today_meals: Meal[] }>`
+  const result = await sql<User & {
+    today_meals: Meal[]
+    today_workouts: { id: string; exercise: string; duration_min: number; kcal_burned: number }[]
+    streak_dates: string[]
+  }>`
     SELECT u.*,
       COALESCE(
         json_agg(
@@ -173,7 +177,19 @@ export async function getHomeData(googleId: string) {
           )
         ) FILTER (WHERE m.id IS NOT NULL),
         '[]'::json
-      ) AS today_meals
+      ) AS today_meals,
+      COALESCE((
+        SELECT json_agg(json_build_object(
+          'id', w.id, 'exercise', w.exercise,
+          'duration_min', w.duration_min, 'kcal_burned', w.kcal_burned
+        ) ORDER BY w.logged_at)
+        FROM workouts w WHERE w.user_id = u.id AND w.logged_at::date = CURRENT_DATE
+      ), '[]'::json) AS today_workouts,
+      COALESCE((
+        SELECT json_agg(DISTINCT m2.eaten_at::date)
+        FROM meals m2 WHERE m2.user_id = u.id
+          AND m2.eaten_at::date >= CURRENT_DATE - 365
+      ), '[]'::json) AS streak_dates
     FROM users u
     LEFT JOIN meals m ON m.user_id = u.id AND m.eaten_at::date = CURRENT_DATE
     WHERE u.google_id = ${googleId}
@@ -181,9 +197,29 @@ export async function getHomeData(googleId: string) {
   `
   const row = result.rows[0]
   if (!row) return null
+
+  const streakDates = ((row.streak_dates as unknown as string[]) ?? [])
+    .map(d => new Date(d).toISOString().slice(0, 10))
+    .sort((a, b) => b.localeCompare(a))
+
+  const set = new Set(streakDates)
+  const todayUTC = new Date().toISOString().slice(0, 10)
+  const anchor = set.has(todayUTC) ? todayUTC : (() => {
+    const y = new Date(); y.setUTCDate(y.getUTCDate() - 1)
+    return y.toISOString().slice(0, 10)
+  })()
+  let streak = 0
+  const cursor = new Date(anchor)
+  while (set.has(cursor.toISOString().slice(0, 10))) {
+    streak++
+    cursor.setUTCDate(cursor.getUTCDate() - 1)
+  }
+
   return {
     user: row as User,
     meals: (row.today_meals as unknown as Meal[]) ?? [],
+    workouts: (row.today_workouts as unknown as { id: string; exercise: string; duration_min: number; kcal_burned: number }[]) ?? [],
+    streak,
   }
 }
 
